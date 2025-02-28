@@ -8,7 +8,7 @@ router.register(r"devices", views.DeviceView, "devices")
 router.register(r"vulnerabilities", views.VulnerabilityView, "vulnerabilities")
 router.register(r"connections", views.ConnectionView, "connections")
 router.register(r"connectionvulnerabilities", views.ConnectionVulnerabilityView, "connectionvulnerabilities")
-
+router.register(r"objects", views.ObjectView, "objects")
 
 urlpatterns = [
     path("api/v1/", include(router.urls)),
@@ -26,7 +26,7 @@ urlpatterns = [
     path('api/v1/devicesustainability/<str:model>/', views.DeviceSustainability.as_view(), name="devicesustainability"),
     path('api/v1/createconnection/', views.CreateConnection.as_view(), name="createconnection"),
     path('api/v1/updateconnection/<int:id>/', views.UpdateConnection.as_view(), name="updateconnection"),
-
+    
 
     path('api/v1/devicemodels/', views.getDeviceModels.as_view(), name="devicemodels"),
     path('api/v1/devicetypes/', views.getDeviceTypes.as_view(), name="devicetypes"),
@@ -34,7 +34,9 @@ urlpatterns = [
     path('api/v1/connectionprotocols/', views.getConnectionProtocols.as_view(), name="connectionprotocols"),
     path('api/v1/connectiongraph/', views.getConnectionGraph.as_view(), name="connectiongraph"),
 
-
+    path('api/v1/createobject/', views.CreateObject.as_view(), name="createObject"),
+    path('api/v1/deleteobject/<int:pk>/', views.DeleteObject.as_view(), name="deleteObject"),
+    path('api/v1/updateobject/<int:id>/', views.updateObject.as_view(), name="updateObject"),
 
 
 

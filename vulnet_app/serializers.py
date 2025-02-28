@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Device,Vulnerability,Connection,ConnectionVulnerability
+from .models import Device,Vulnerability,Connection,ConnectionVulnerability,formularioObject
 
 
 
@@ -25,4 +25,12 @@ class ConnectionSerializer(serializers.ModelSerializer):
     second_device = DeviceSerializer()
     class Meta:
         model = Connection
+        fields = '__all__'
+
+class ObjectSerializer(serializers.ModelSerializer):
+    first_device = DeviceSerializer()
+    second_device = DeviceSerializer()
+    third_device = DeviceSerializer()
+    class Meta:
+        model = formularioObject
         fields = '__all__'

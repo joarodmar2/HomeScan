@@ -50,3 +50,16 @@ class ConnectionVulnerability(models.Model):
 
     def __str__(self):
        return str(self.name)
+    
+
+class formularioObject(models.Model):
+    name = models.TextField(blank=False)
+    type = models.TextField(blank=False)
+    first_device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="formfirstdevice")
+    second_device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="formseconddevice")
+    third_device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="formthirddevice",null=True,
+    blank=True)
+
+    def __str__(self):
+       return str(self.name)
+    
