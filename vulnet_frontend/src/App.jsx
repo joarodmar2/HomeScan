@@ -8,7 +8,9 @@ import { ConnectionsFormPage } from "./pages/ConnectionsFormPage";
 import { DevicesDashboard } from "./pages/DevicesDashboard";
 import { DeviceVulnerabilitiesDashboard } from "./pages/DeviceVulnerabilitiesDashboard";
 import { ConnectionsGraph } from "./pages/ConnectionsGraph";
-import Objetos from './components/objetos/Objetos';
+import Objects from './components/objetos/Objects';
+
+
 
 import { Toaster } from "react-hot-toast";
 

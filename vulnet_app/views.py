@@ -1,12 +1,20 @@
 from rest_framework import viewsets
+<<<<<<< HEAD
 from .serializers import DeviceSerializer,VulnerabilitySerializer,ConnectionSerializer,ConnectionVulnerabilitySerializer,EstanciaSerializer
 from .models import Device,Vulnerability,Connection,ConnectionVulnerability,Estancia
+=======
+from .serializers import DeviceSerializer,VulnerabilitySerializer,ConnectionSerializer,ConnectionVulnerabilitySerializer,ObjectSerializer
+from .models import Device,Vulnerability,Connection,ConnectionVulnerability,formularioObject
+>>>>>>> 85ed67ec0d369877cf5ceec02c671961df1a8346
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import HttpResponse, JsonResponse
 from django.core import serializers
+<<<<<<< HEAD
 from rest_framework.decorators import api_view
+=======
+>>>>>>> 85ed67ec0d369877cf5ceec02c671961df1a8346
 from django.shortcuts import get_object_or_404
 
 import json
@@ -76,6 +84,10 @@ class ConnectionView(viewsets.ModelViewSet):
 class ConnectionVulnerabilityView(viewsets.ModelViewSet):
     serializer_class = ConnectionVulnerabilitySerializer
     queryset = ConnectionVulnerability.objects.all()
+
+class ObjectView(viewsets.ModelViewSet):
+    serializer_class = ObjectSerializer
+    queryset = formularioObject.objects.all()
 
 
 class NdevNvuln(APIView):
@@ -555,3 +567,56 @@ class getDeviceCapabilities(APIView):
         dic ={}
         dic["capabilities"]=capabilities
         return JsonResponse(dic) 
+    
+class CreateObject(APIView):
+    def post(self, request, *args, **kwargs):
+        query = request.data
+
+        name=query.get("name")
+        type= query.get("type")
+
+        first_device= query.get("first_device")
+        second_device= query.get("second_device")
+        third_device=query.get("third_device")
+
+        first_device_object=Device.objects.filter(model=first_device)[0]
+        second_device_object=Device.objects.filter(model=second_device)[0]
+        third_device_object=Device.objects.filter(model=third_device)[0]
+
+        formularioObject.objects.create(name=name, type=type, first_device=first_device_object, second_device=second_device_object, third_device=third_device_object)
+
+        return Response(status=status.HTTP_200_OK)
+    
+
+class DeleteObject(APIView):
+    def delete(self, request, pk):
+        objeto = get_object_or_404(formularioObject, pk=pk)
+        objeto.delete()
+        return Response({"mensaje": "Objeto eliminado correctamente"}, status=status.HTTP_204_NO_CONTENT)
+
+  
+class updateObject(APIView):
+    def put(self, request, *args, **kwargs):
+        query = request.data
+
+        id_value = self.kwargs["id"]
+        name=query.get("name")
+        type= query.get("type")
+
+        first_device= query.get("first_device")
+        second_device= query.get("second_device")
+        third_device=query.get("third_device")
+
+        first_device_object=Device.objects.filter(model=first_device)[0]
+        second_device_object=Device.objects.filter(model=second_device)[0]
+        third_device_object=Device.objects.filter(model=third_device)[0]
+
+        formularioObject.objects.filter(id=id_value).update(name=name, type=type, first_device=first_device_object, second_device=second_device_object, third_device=third_device_object)
+
+        return Response(status=status.HTTP_200_OK)
+
+
+
+
+
+    

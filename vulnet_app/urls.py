@@ -9,8 +9,12 @@ router.register(r"devices", views.DeviceView, "devices")
 router.register(r"vulnerabilities", views.VulnerabilityView, "vulnerabilities")
 router.register(r"connections", views.ConnectionView, "connections")
 router.register(r"connectionvulnerabilities", views.ConnectionVulnerabilityView, "connectionvulnerabilities")
+<<<<<<< HEAD
 
 #router.register(r"Estancia", views.Estancia, "estancia") # Si lo activo salta error 
+=======
+router.register(r"objects", views.ObjectView, "objects")
+>>>>>>> 85ed67ec0d369877cf5ceec02c671961df1a8346
 
 urlpatterns = [
     path("api/v1/", include(router.urls)),
@@ -28,16 +32,23 @@ urlpatterns = [
     path('api/v1/devicesustainability/<str:model>/', views.DeviceSustainability.as_view(), name="devicesustainability"),
     path('api/v1/createconnection/', views.CreateConnection.as_view(), name="createconnection"),
     path('api/v1/updateconnection/<int:id>/', views.UpdateConnection.as_view(), name="updateconnection"),
-
+    
 
     path('api/v1/devicemodels/', views.getDeviceModels.as_view(), name="devicemodels"),
     path('api/v1/devicetypes/', views.getDeviceTypes.as_view(), name="devicetypes"),
     path('api/v1/devicapabilities/', views.getDeviceCapabilities.as_view(), name="devicapabilities"),
     path('api/v1/connectionprotocols/', views.getConnectionProtocols.as_view(), name="connectionprotocols"),
     path('api/v1/connectiongraph/', views.getConnectionGraph.as_view(), name="connectiongraph"),
+<<<<<<< HEAD
     path("api/Estancia/", EstanciaView.as_view(), name="Estancia_list"),
     path("api/Estancia/<int:pk>/", EstanciaView.as_view(), name="Estancia_detail"),
     path('api/buscar-dispositivo/', buscar_dispositivos, name='buscar_dispositivo'),
+=======
+
+    path('api/v1/createobject/', views.CreateObject.as_view(), name="createObject"),
+    path('api/v1/deleteobject/<int:pk>/', views.DeleteObject.as_view(), name="deleteObject"),
+    path('api/v1/updateobject/<int:id>/', views.updateObject.as_view(), name="updateObject"),
+>>>>>>> 85ed67ec0d369877cf5ceec02c671961df1a8346
 
 
 
