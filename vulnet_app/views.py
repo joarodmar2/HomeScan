@@ -1,15 +1,66 @@
 from rest_framework import viewsets
-from .serializers import DeviceSerializer,VulnerabilitySerializer,ConnectionSerializer,ConnectionVulnerabilitySerializer
-from .models import Device,Vulnerability,Connection,ConnectionVulnerability
+from .serializers import DeviceSerializer,VulnerabilitySerializer,ConnectionSerializer,ConnectionVulnerabilitySerializer,EstanciaSerializer
+from .models import Device,Vulnerability,Connection,ConnectionVulnerability,Estancia
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import HttpResponse, JsonResponse
 from django.core import serializers
+from rest_framework.decorators import api_view
+from django.shortcuts import get_object_or_404
 
 import json
 
+
+class EstanciaView(APIView):
+
+    # Obtener todas las Estancias
+    def get(self, request, pk=None, format=None):
+        if pk:
+            estancia = get_object_or_404(Estancia, id=pk)
+            serializer = EstanciaSerializer(estancia)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            estancias = Estancia.objects.all()
+            serializer = EstanciaSerializer(estancias, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # Crear una nueva Estancia
+    def post(self, request, format=None):
+        print("Datos recibidos en el backend:", request.data)  # ✅ Verifica qué datos llegan
+        
+        serializer = EstanciaSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print("Errores en la validación:", serializer.errors)  # ✅ Si hay errores, imprímelos
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # Actualizar una Estancia existente
+    def put(self, request, pk, format=None):
+        estancia = get_object_or_404(Estancia, id=pk)
+        serializer = EstanciaSerializer(estancia, data=request.data, partial=True)  # `partial=True` permite actualizar solo algunos campos
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # Eliminar una Estancia
+    def delete(self, request, pk, format=None):
+        estancia = get_object_or_404(Estancia, id=pk)
+        estancia.delete()
+        return Response({"mensaje": "Estancia eliminada correctamente"}, status=status.HTTP_204_NO_CONTENT)
+
 # Create your views here.
+
+def buscar_dispositivos(request):
+    query = request.GET.get('q', '').strip()
+    if query:
+        dispositivos = Device.objects.filter(nombre__icontains=query)[:10]
+        nombres = list(dispositivos.values_list('nombre', flat=True))
+        return JsonResponse(nombres, safe=False)
+    return JsonResponse([], safe=False)
+
 class DeviceView(viewsets.ModelViewSet):
     serializer_class = DeviceSerializer
     queryset = Device.objects.all()

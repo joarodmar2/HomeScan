@@ -15,6 +15,9 @@ export function Navigation() {
       <button className="bg-gray-500 p-3 rounded-lg graph_button">
         <Link to="/graph">Graph</Link>
       </button>
+      <button className="bg-gray-500 p-3 rounded-lg devices_button">
+        <Link to="/Estancia">Estancia</Link>
+      </button>
       <button className="bg-gray-500 p-3 rounded-lg dashboard_button">
         <Link to="/dashboard">Dashboard</Link>
       </button>

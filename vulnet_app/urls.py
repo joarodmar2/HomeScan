@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
 from vulnet_app import views
+from .views import EstanciaView,buscar_dispositivos
 
 router = routers.DefaultRouter()
 router.register(r"devices", views.DeviceView, "devices")
@@ -9,6 +10,7 @@ router.register(r"vulnerabilities", views.VulnerabilityView, "vulnerabilities")
 router.register(r"connections", views.ConnectionView, "connections")
 router.register(r"connectionvulnerabilities", views.ConnectionVulnerabilityView, "connectionvulnerabilities")
 
+#router.register(r"Estancia", views.Estancia, "estancia") # Si lo activo salta error 
 
 urlpatterns = [
     path("api/v1/", include(router.urls)),
@@ -33,8 +35,9 @@ urlpatterns = [
     path('api/v1/devicapabilities/', views.getDeviceCapabilities.as_view(), name="devicapabilities"),
     path('api/v1/connectionprotocols/', views.getConnectionProtocols.as_view(), name="connectionprotocols"),
     path('api/v1/connectiongraph/', views.getConnectionGraph.as_view(), name="connectiongraph"),
-
-
+    path("api/Estancia/", EstanciaView.as_view(), name="Estancia_list"),
+    path("api/Estancia/<int:pk>/", EstanciaView.as_view(), name="Estancia_detail"),
+    path('api/buscar-dispositivo/', buscar_dispositivos, name='buscar_dispositivo'),
 
 
 

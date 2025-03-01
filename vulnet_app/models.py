@@ -50,3 +50,10 @@ class ConnectionVulnerability(models.Model):
 
     def __str__(self):
        return str(self.name)
+    
+class Estancia(models.Model):
+    nombreEstancia = models.CharField(max_length=255)
+    dispositivos = models.JSONField(default=list)  # Lista de dispositivos en formato JSON
+
+    def __str__(self):
+        return self.nombre

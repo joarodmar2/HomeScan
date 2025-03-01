@@ -12,11 +12,15 @@ import Objetos from './components/objetos/Objetos';
 
 import { Toaster } from "react-hot-toast";
 
+import EstanciaPage from "./pages/EstanciaPage";
+import Estancia from "./components/Estancia";
+
+
 function App() {
   return (
     <BrowserRouter>
       <div className="container mx-auto">
-        <Navigation />
+      <Navigation />
         <Routes>
           {/* redirect to tasks */}
           <Route path="/" element={<Navigate to="/devices" />} />
@@ -30,6 +34,8 @@ function App() {
           <Route path="/dashboard/:id/:vuln_id?" element={<DeviceVulnerabilitiesDashboard />}/>
           <Route path="/graph" element={<ConnectionsGraph />}/>
           <Route path="/objetos" element={<Objetos />} />
+          <Route path="/Estancia" element={<EstanciaPage />} />
+          <Route path="/estancia/:nombre" element={<Estancia />} /> 
 
         </Routes>
         <Toaster />

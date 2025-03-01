@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Device,Vulnerability,Connection,ConnectionVulnerability
+from .models import Device,Vulnerability,Connection,ConnectionVulnerability, Estancia
 
 
 
@@ -25,4 +25,9 @@ class ConnectionSerializer(serializers.ModelSerializer):
     second_device = DeviceSerializer()
     class Meta:
         model = Connection
+        fields = '__all__'
+
+class EstanciaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Estancia
         fields = '__all__'
