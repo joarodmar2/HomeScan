@@ -8,7 +8,7 @@ import { ConnectionsFormPage } from "./pages/ConnectionsFormPage";
 import { DevicesDashboard } from "./pages/DevicesDashboard";
 import { DeviceVulnerabilitiesDashboard } from "./pages/DeviceVulnerabilitiesDashboard";
 import { ConnectionsGraph } from "./pages/ConnectionsGraph";
-import Objects from './components/objetos/Objects';
+import Objects from './components/Objects';
 
 
 
