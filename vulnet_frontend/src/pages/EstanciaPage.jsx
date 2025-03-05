@@ -44,11 +44,11 @@ const EstanciaPage = () => {
             <div style={styles.EstanciaGrid}>
                 {Estancias.length > 0 ? (
                     Estancias.map((Estancia) => (
-                        <div key={Estancia.id} style={styles.EstanciaCard}>
-                            <h3 style={styles.nombreEstancia}>{Estancia.nombreEstancia}</h3>
+                        <div key={Estancia.id} style={styles.EstanciaCard} > 
+                            <h3 style={styles.nombreEstancia}onClick={() => navigate(`/estancia/${encodeURIComponent(Estancia.nombreEstancia)}/objetos`)}>{Estancia.nombreEstancia}</h3>
 
                             <p style={styles.subtitulo}>
-                                📌 Dispositivos ({Estancia.dispositivos?.length || 0}):
+                                Hay {Estancia.dispositivos?.length || 0} dispositivos:
                             </p>
 
                             {Estancia.dispositivos && Estancia.dispositivos.length > 0 ? (

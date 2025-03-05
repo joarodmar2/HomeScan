@@ -1,5 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 
 const Estancia = () => {
     const { nombre } = useParams();
@@ -8,19 +10,22 @@ const Estancia = () => {
     const [error, setError] = useState(null);
     const [nuevoDispositivo, setNuevoDispositivo] = useState(""); // Estado para el nuevo dispositivo
     const [sugerencias, setSugerencias] = useState([]); // Estado para sugerencias de dispositivos
+    const navigate = useNavigate();  // ✅ Hook para redirigir a otra página
 
     useEffect(() => {
-        fetch(`http://127.0.0.1:8000/vulnet/api/Estancia/?nombre=${encodeURIComponent(nombre)}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Error al obtener los datos");
-                }
-                return response.json();
-            })
+        fetch(`http://127.0.0.1:8000/vulnet/api/Estancia/`) // 🔹 Obtiene TODAS las estancias
+            .then(response => response.json())
             .then(data => {
-                if (Array.isArray(data) && data.length > 0) {
-                    setEstancia(data[0]);
+                console.log("Datos completos recibidos desde API:", data); // ✅ Verifica qué llega desde el backend
+    
+                // 🔹 Filtra manualmente por nombre (ignorando mayúsculas y minúsculas)
+                const estanciaFiltrada = data.find(e => e.nombreEstancia.toLowerCase() === nombre.toLowerCase());
+    
+                if (estanciaFiltrada) {
+                    console.log("Estancia encontrada correctamente:", estanciaFiltrada);
+                    setEstancia(estanciaFiltrada);
                 } else {
+                    console.log("No se encontró la estancia con el nombre:", nombre);
                     setEstancia(null);
                 }
                 setLoading(false);
@@ -30,7 +35,8 @@ const Estancia = () => {
                 setError(error.message);
                 setLoading(false);
             });
-    }, [nombre]);
+    }, [nombre]); // 🔹 Se ejecuta cada vez que cambia `nombre`
+    
 
     // ✅ Función para buscar dispositivos en la API mientras se escribe
     const buscarDispositivos = (query) => {
@@ -65,6 +71,34 @@ const Estancia = () => {
             setSugerencias([]); // Limpiar las sugerencias
         }
     };
+    const updateEstancia = async () => {
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/vulnet/api/Estancia/${estancia.id}/`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    nombreEstancia: estancia.nombreEstancia,
+                    dispositivos: estancia.dispositivos
+                }),
+            });
+    
+            if (response.ok) {
+                console.log("Estancia actualizada con éxito");
+                alert("Los cambios han sido guardados correctamente.");
+                navigate("/Estancia");  // ✅ Redirigir a la lista de estancias después de guardar
+            } else {
+                console.error("Error al actualizar la estancia");
+                alert("Hubo un error al guardar los cambios.");
+            }
+        } catch (error) {
+            console.error("Error en la conexión con el servidor:", error);
+            alert("Error de conexión con el servidor.");
+        }
+    };
+    
+
 
     if (loading) {
         return <p style={{ color: "white", textAlign: "center" }}>Cargando datos de la estancia...</p>;
@@ -116,7 +150,9 @@ const Estancia = () => {
                         ))}
                     </datalist>
                     <button style={styles.addButton} onClick={handleAddDevice}>Añadir</button>
+
                 </div>
+                    <button style={styles.saveButton} onClick={updateEstancia}>Guardar</button>
             </div>
         </div>
     );
@@ -204,6 +240,18 @@ const styles = {
     },
     addButton: {
         background: "#6366f1",
+        color: "white",
+        border: "none",
+        padding: "10px",
+        borderRadius: "5px",
+        cursor: "pointer",
+        fontSize: "14px",
+        fontWeight: "bold",
+        transition: "background 0.3s ease-in-out"
+    },
+    saveButton: {
+        background: "green",
+        marginTop: "15px",
         color: "white",
         border: "none",
         padding: "10px",

@@ -24,7 +24,7 @@ function App() {
       <div className="container mx-auto">
       <Navigation />
         <Routes>
-          {/* redirect to tasks */}
+          {/*Aqui asociamos el nombre de la ruta del archivo a la izquierda en la linea con lo de la derecha que es como se le llama en la URL */}
           <Route path="/" element={<Navigate to="/devices" />} />
           <Route path="/devices" element={<DevicesPage />} />
           <Route path="/devices/:id" element={<DevicesFormPage />} />
@@ -35,10 +35,12 @@ function App() {
           <Route path="/dashboard" element={<DevicesDashboard />}/>
           <Route path="/dashboard/:id/:vuln_id?" element={<DeviceVulnerabilitiesDashboard />}/>
           <Route path="/graph" element={<ConnectionsGraph />}/>
-          <Route path="/objetos" element={<Objetos />} />
-          <Route path="/Estancia" element={<EstanciaPage />} />
+          <Route path="/objetos" element={<Objects />} />
+          <Route path="/estancia" element={<EstanciaPage />} />
           <Route path="/estancia/:nombre" element={<Estancia />} /> 
+          <Route path="/estancia/:nombre/objetos" element={<Objects />} /> 
 
+          
         </Routes>
         <Toaster />
       </div>
