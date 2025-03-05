@@ -1,20 +1,14 @@
 from rest_framework import viewsets
-<<<<<<< HEAD
 from .serializers import DeviceSerializer,VulnerabilitySerializer,ConnectionSerializer,ConnectionVulnerabilitySerializer,EstanciaSerializer
 from .models import Device,Vulnerability,Connection,ConnectionVulnerability,Estancia
-=======
 from .serializers import DeviceSerializer,VulnerabilitySerializer,ConnectionSerializer,ConnectionVulnerabilitySerializer,ObjectSerializer
 from .models import Device,Vulnerability,Connection,ConnectionVulnerability,formularioObject
->>>>>>> 85ed67ec0d369877cf5ceec02c671961df1a8346
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import HttpResponse, JsonResponse
 from django.core import serializers
-<<<<<<< HEAD
 from rest_framework.decorators import api_view
-=======
->>>>>>> 85ed67ec0d369877cf5ceec02c671961df1a8346
 from django.shortcuts import get_object_or_404
 
 import json

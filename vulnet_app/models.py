@@ -51,14 +51,12 @@ class ConnectionVulnerability(models.Model):
     def __str__(self):
        return str(self.name)
     
-<<<<<<< HEAD
 class Estancia(models.Model):
     nombreEstancia = models.CharField(max_length=255)
     dispositivos = models.JSONField(default=list)  # Lista de dispositivos en formato JSON
 
     def __str__(self):
         return self.nombre
-=======
 
 class formularioObject(models.Model):
     name = models.TextField(blank=False)
@@ -71,4 +69,3 @@ class formularioObject(models.Model):
     def __str__(self):
        return str(self.name)
     
->>>>>>> 85ed67ec0d369877cf5ceec02c671961df1a8346
