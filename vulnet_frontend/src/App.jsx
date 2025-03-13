@@ -16,6 +16,7 @@ import { Toaster } from "react-hot-toast";
 
 import EstanciaPage from "./pages/EstanciaPage";
 import Estancia from "./components/Estancia";
+import ThreeScene from "./components/ThreeScene";
 
 
 function App() {
@@ -39,6 +40,8 @@ function App() {
           <Route path="/estancia" element={<EstanciaPage />} />
           <Route path="/estancia/:nombre" element={<Estancia />} /> 
           <Route path="/estancia/:nombre/objetos" element={<Objects />} /> 
+          <Route path="/modelado" element={<ThreeScene />} />
+          
 
           
         </Routes>

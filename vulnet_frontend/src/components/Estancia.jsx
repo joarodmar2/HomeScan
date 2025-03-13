@@ -2,30 +2,24 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-
 const Estancia = () => {
-    const { nombre } = useParams();
+    const { nombre } = useParams(); // Usamos el hook useParams para obtener el parámetro de la URL. En este caso, el nombre de la estancia.
     const [estancia, setEstancia] = useState(null);
+    const [dispositivosDisponibles, setDispositivosDisponibles] = useState([]); // Lista de dispositivos
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [nuevoDispositivo, setNuevoDispositivo] = useState(""); // Estado para el nuevo dispositivo
-    const [sugerencias, setSugerencias] = useState([]); // Estado para sugerencias de dispositivos
-    const navigate = useNavigate();  // ✅ Hook para redirigir a otra página
+    const navigate = useNavigate();  
 
     useEffect(() => {
-        fetch(`http://127.0.0.1:8000/vulnet/api/Estancia/`) // 🔹 Obtiene TODAS las estancias
+        // 🔹 Obtiene TODAS las estancias
+        fetch(`http://127.0.0.1:8000/vulnet/api/Estancia/`)
             .then(response => response.json())
             .then(data => {
-                console.log("Datos completos recibidos desde API:", data); // ✅ Verifica qué llega desde el backend
-    
-                // 🔹 Filtra manualmente por nombre (ignorando mayúsculas y minúsculas)
+                console.log("Datos completos recibidos desde API:", data);
                 const estanciaFiltrada = data.find(e => e.nombreEstancia.toLowerCase() === nombre.toLowerCase());
-    
                 if (estanciaFiltrada) {
-                    console.log("Estancia encontrada correctamente:", estanciaFiltrada);
                     setEstancia(estanciaFiltrada);
                 } else {
-                    console.log("No se encontró la estancia con el nombre:", nombre);
                     setEstancia(null);
                 }
                 setLoading(false);
@@ -35,42 +29,34 @@ const Estancia = () => {
                 setError(error.message);
                 setLoading(false);
             });
-    }, [nombre]); // 🔹 Se ejecuta cada vez que cambia `nombre`
-    
 
-    // ✅ Función para buscar dispositivos en la API mientras se escribe
-    const buscarDispositivos = (query) => {
-        if (query.length > 1) {
-            fetch(`http://127.0.0.1:8000/vulnet/api/v1/devicemodels/?q=${query}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.models && Array.isArray(data.models)) {
-                        setSugerencias(data.models);
-                    }
-                })
-                .catch(error => console.error('Error en la búsqueda de dispositivos:', error));
-        } else {
-            setSugerencias([]); // Limpiar sugerencias si el input está vacío
-        }
-    };
+        // 🔹 Obtiene TODOS los dispositivos disponibles en la base de datos
+        fetch(`http://127.0.0.1:8000/vulnet/api/v1/devices/`)
+            .then(response => response.json())
+            .then(data => {
+                setDispositivosDisponibles(data); // Guarda los dispositivos en el estado
+            })
+            .catch(error => console.error("Error al obtener los dispositivos:", error));
+    }, [nombre]); // Importante--> Este useEffect solo se ejecuta cuando nombre cambia.
 
-    // ✅ Función para eliminar un dispositivo existente
+    // ✅ Función para eliminar un dispositivo de la estancia
     const handleDeleteDevice = (index) => {
         const updatedDevices = estancia.dispositivos.filter((_, i) => i !== index);
         setEstancia({ ...estancia, dispositivos: updatedDevices });
     };
 
-    // ✅ Función para añadir un dispositivo a la lista
-    const handleAddDevice = () => {
-        if (nuevoDispositivo.trim() !== "") {
+    // ✅ Función para añadir un dispositivo desde el select
+    const handleAddDevice = (event) => {
+        const selectedDevice = event.target.value;
+        if (selectedDevice) {
             setEstancia(prevState => ({
                 ...prevState,
-                dispositivos: [...prevState.dispositivos, nuevoDispositivo]
+                dispositivos: [...prevState.dispositivos, selectedDevice]
             }));
-            setNuevoDispositivo(""); // Limpiar el input después de agregarlo
-            setSugerencias([]); // Limpiar las sugerencias
         }
     };
+
+    // ✅ Función para actualizar la estancia en la API
     const updateEstancia = async () => {
         try {
             const response = await fetch(`http://127.0.0.1:8000/vulnet/api/Estancia/${estancia.id}/`, {
@@ -83,11 +69,11 @@ const Estancia = () => {
                     dispositivos: estancia.dispositivos
                 }),
             });
-    
+
             if (response.ok) {
                 console.log("Estancia actualizada con éxito");
                 alert("Los cambios han sido guardados correctamente.");
-                navigate("/Estancia");  // ✅ Redirigir a la lista de estancias después de guardar
+                navigate("/Estancia");
             } else {
                 console.error("Error al actualizar la estancia");
                 alert("Hubo un error al guardar los cambios.");
@@ -97,8 +83,6 @@ const Estancia = () => {
             alert("Error de conexión con el servidor.");
         }
     };
-    
-
 
     if (loading) {
         return <p style={{ color: "white", textAlign: "center" }}>Cargando datos de la estancia...</p>;
@@ -113,13 +97,14 @@ const Estancia = () => {
     }
 
     return (
-        <div style={styles.pageContainer}>
+        //Editar la estancia
+        <div style={styles.pageContainer}>      
             <div style={styles.card}>
                 <h2 style={styles.nombre}>{estancia.nombreEstancia}</h2>
 
                 <p style={styles.subtitulo}> Dispositivos:</p>
                 <ul style={styles.list}>
-                    {estancia.dispositivos && estancia.dispositivos.length > 0 ? (
+                    {estancia.dispositivos.length > 0 ? (
                         estancia.dispositivos.map((dispositivo, index) => (
                             <li key={index} style={styles.listItem}>
                                 {dispositivo}
@@ -131,34 +116,23 @@ const Estancia = () => {
                     )}
                 </ul>
 
-                {/* ✅ Input y botón para agregar nuevos dispositivos con búsqueda */}
-                <div style={styles.addDeviceContainer}>
-                    <input
-                        type="text"
-                        value={nuevoDispositivo}
-                        onChange={(e) => {
-                            setNuevoDispositivo(e.target.value);
-                            buscarDispositivos(e.target.value);
-                        }}
-                        placeholder="Añadir nuevo dispositivo..."
-                        style={styles.input}
-                        list="sugerencias-dispositivos"
-                    />
-                    <datalist id="sugerencias-dispositivos">
-                        {sugerencias.map((nombre, i) => (
-                            <option key={i} value={nombre} />
+                {/* 🔹 Select para añadir dispositivos desde la base de datos */}
+                <div style={styles.addDeviceContainer}> 
+                    <select style={styles.input} onChange={handleAddDevice} defaultValue="">
+                        <option value="" disabled>Selecciona un dispositivo</option>
+                        {dispositivosDisponibles.map((device, index) => (
+                            <option key={index} value={device.model}>{device.model} </option>
                         ))}
-                    </datalist>
-                    <button style={styles.addButton} onClick={handleAddDevice}>Añadir</button>
-
+                    </select>
                 </div>
-                    <button style={styles.saveButton} onClick={updateEstancia}>Guardar</button>
+
+                <button style={styles.saveButton} onClick={updateEstancia}>Guardar</button>
             </div>
         </div>
     );
 };
 
-// ✅ **Estilos Mejorados**
+// ✅ **Estilos**
 const styles = {
     pageContainer: {
         backgroundColor: "#121212",
@@ -177,12 +151,6 @@ const styles = {
         textAlign: "center",
         maxWidth: "400px",
         width: "100%"
-    },
-    title: {
-        fontSize: "22px",
-        fontWeight: "bold",
-        marginBottom: "15px",
-        textTransform: "uppercase"
     },
     nombre: {
         fontSize: "28px",
@@ -220,8 +188,7 @@ const styles = {
         padding: "5px 10px",
         borderRadius: "5px",
         cursor: "pointer",
-        fontSize: "14px",
-        transition: "background 0.3s ease-in-out"
+        fontSize: "14px"
     },
     addDeviceContainer: {
         marginTop: "20px",
@@ -236,18 +203,7 @@ const styles = {
         backgroundColor: "#303030",
         color: "white",
         fontSize: "14px",
-        width: "70%"
-    },
-    addButton: {
-        background: "#6366f1",
-        color: "white",
-        border: "none",
-        padding: "10px",
-        borderRadius: "5px",
-        cursor: "pointer",
-        fontSize: "14px",
-        fontWeight: "bold",
-        transition: "background 0.3s ease-in-out"
+        width: "100%"
     },
     saveButton: {
         background: "green",
@@ -258,8 +214,7 @@ const styles = {
         borderRadius: "5px",
         cursor: "pointer",
         fontSize: "14px",
-        fontWeight: "bold",
-        transition: "background 0.3s ease-in-out"
+        fontWeight: "bold"
     }
 };
 

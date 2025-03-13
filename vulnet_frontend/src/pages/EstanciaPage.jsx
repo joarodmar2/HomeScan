@@ -6,9 +6,49 @@ const EstanciaPage = () => {
     const navigate = useNavigate();
     const [Estancias, setEstancias] = useState([]);
     const [modalOpen, setModalOpen] = useState(false);
+    const [conexiones, setConexiones] = useState([]); // Nuevo estado para almacenar las conexiones
+    const iconosConexion = {
+        "WI-FI": "/connections/wifi.png",
+        "Bluetooth": "/connections/bluetooth.png",
+        "Ethernet": "/connections/ethernet.png",
+        "ZigBee": "/connections/zigbee.png",
+    };
+
 
     useEffect(() => {
         fetchEstancias();
+    }, []);
+
+    useEffect(() => {
+        fetch("http://localhost:8000/vulnet/api/v1/connectiongraph/")
+            .then((response) => response.json())
+            .then((data) => {
+                const conexionesMap = {};
+
+                data.first_devices.forEach((device, index) => {
+                    const protocol = data.protocols[index];
+                    const secondDevice = data.second_devices[index];
+
+                    // Agregar conexión para el primer dispositivo
+                    if (!conexionesMap[device]) {
+                        conexionesMap[device] = [];
+                    }
+                    if (!conexionesMap[device].includes(protocol)) {
+                        conexionesMap[device].push(protocol);
+                    }
+
+                    // Agregar conexión para el segundo dispositivo
+                    if (!conexionesMap[secondDevice]) {
+                        conexionesMap[secondDevice] = [];
+                    }
+                    if (!conexionesMap[secondDevice].includes(protocol)) {
+                        conexionesMap[secondDevice].push(protocol);
+                    }
+                });
+
+                setConexiones(conexionesMap);
+            })
+            .catch((error) => console.error("Error obteniendo conexiones:", error));
     }, []);
 
     const fetchEstancias = () => {
@@ -35,50 +75,70 @@ const EstanciaPage = () => {
     };
 
     return (
-        <div style={styles.pageContainer}>
-            <h2>Lista de Estancias</h2>
-            <button style={styles.createButton} onClick={() => setModalOpen(true)}>
-                Nueva Estancia
-            </button>
+        <div style={styles.EstanciaGrid}>
+            {Estancias.length > 0 ? (
+                Estancias.map((Estancia) => (
+                    <div key={Estancia.id} style={styles.EstanciaCard}>
+                        <h3
+                            style={styles.nombreEstancia}
+                            onClick={() => navigate(`/estancia/${encodeURIComponent(Estancia.nombreEstancia)}/objetos`)}
+                        >
+                            {Estancia.nombreEstancia}
+                        </h3>
 
-            <div style={styles.EstanciaGrid}>
-                {Estancias.length > 0 ? (
-                    Estancias.map((Estancia) => (
-                        <div key={Estancia.id} style={styles.EstanciaCard} > 
-                            <h3 style={styles.nombreEstancia}onClick={() => navigate(`/estancia/${encodeURIComponent(Estancia.nombreEstancia)}/objetos`)}>{Estancia.nombreEstancia}</h3>
+                        <p style={styles.subtitulo}>
+                            Hay {Estancia.dispositivos?.length || 0} dispositivos:
+                        </p>
 
-                            <p style={styles.subtitulo}>
-                                Hay {Estancia.dispositivos?.length || 0} dispositivos:
-                            </p>
+                        {Estancia.dispositivos && Estancia.dispositivos.length > 0 ? (
+                            <ul style={styles.list}>
+                                {Estancia.dispositivos.map((dispositivo, index) => {
+                                    const conexionesDispositivo = conexiones[dispositivo] || [];
 
-                            {Estancia.dispositivos && Estancia.dispositivos.length > 0 ? (
-                                <ul style={styles.list}>
-                                    {Estancia.dispositivos.map((dispositivo, index) => (
-                                        <li key={index} style={styles.listItem}>{dispositivo}</li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p style={{ color: "white", fontStyle: "italic" }}>No hay dispositivos</p>
-                            )}
+                                    return (
+                                        <li key={index} style={{  display: "flex", alignItems: "center", gap: "8px" }}>
 
-                            {/* Botones de Editar y Eliminar */}
-                            <div style={styles.buttonsContainer}>
-                                <button style={styles.editButton} onClick={() => navigate(`/estancia/${encodeURIComponent(Estancia.nombreEstancia)}`)}>
-                                    Editar
-                                </button>
-                                <button style={styles.deleteButton} onClick={() => handleDelete(Estancia.id)}>
-                                    Eliminar
-                                </button>
-                            </div>
+                                            <span>{dispositivo}</span>
+                                            {conexionesDispositivo.length > 0 ? (
+                                                conexionesDispositivo.map((tipo, i) => (
+                                                    <img
+                                                        key={i}
+                                                        src={iconosConexion[tipo] || "/connections/default.png"}
+                                                        alt={tipo}
+                                                        style={{ width: "20px", height: "25px" }}
+                                                    />
+                                                ))
+                                            ) : (
+                                                <span style={{ fontStyle: "italic", color: "gray" }}>Sin conexión</span>
+                                            )}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+
+                        ) : (
+                            <p style={{ color: "white", fontStyle: "italic" }}>No hay dispositivos</p>
+                        )}
+
+                        <div style={styles.buttonsContainer}>
+                            <button
+                                style={styles.editButton}
+                                onClick={() => navigate(`/estancia/${encodeURIComponent(Estancia.nombreEstancia)}`)}
+                            >
+                                Editar
+                            </button>
+                            <button style={styles.deleteButton} onClick={() => handleDelete(Estancia.id)}>
+                                Eliminar
+                            </button>
                         </div>
-                    ))
-                ) : (
-                    <p style={{ color: "white" }}>No hay estancias disponibles</p>
-                )}
-            </div>
-
-            {modalOpen && <EstanciaForm onClose={() => setModalOpen(false)} onEstanciaCreated={fetchEstancias} />}
+                    </div>
+                ))
+            ) : (
+                <p style={{ color: "white" }}>No hay estancias disponibles</p>
+            )}
         </div>
+
+
     );
 };
 
@@ -105,7 +165,8 @@ const styles = {
         transition: "background 0.3s ease-in-out",
         marginBottom: "20px"
     },
-    EstanciaGrid: {
+    EstanciaGrid: {     // Es el div general que contiene todas las estancias
+        marginTop: "20px",
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
         gap: "20px",

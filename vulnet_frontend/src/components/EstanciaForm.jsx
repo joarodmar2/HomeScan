@@ -1,50 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const EstanciaForm = ({ onClose, onEstanciaCreated }) => {
-    const [formData, setFormData] = useState({ nombreEstancia: "", dispositivos: [""] });
-    const [sugerencias, setSugerencias] = useState([]); // ✅ Estado para almacenar las sugerencias
+    const [formData, setFormData] = useState({ nombreEstancia: "", dispositivos: [] });
+    const [dispositivosDisponibles, setDispositivosDisponibles] = useState([]); // Lista de dispositivos
+
+    // 🔹 Obtiene TODOS los dispositivos disponibles en la base de datos
+    useEffect(() => {
+        fetch("http://127.0.0.1:8000/vulnet/api/v1/devices/")
+            .then(response => response.json())
+            .then(data => {
+                setDispositivosDisponibles(data); // Guarda los dispositivos en el estado
+            })
+            .catch(error => console.error("Error al obtener los dispositivos:", error));
+    }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleAddDevice = () => {
-        setFormData(prevForm => ({
-            ...prevForm,
-            dispositivos: [...prevForm.dispositivos, ""]
-        }));
-    };
-
-    const handleRemoveDevice = () => {
-        if (formData.dispositivos.length > 1) {
+    // ✅ Añadir un dispositivo desde el <select>
+    const handleAddDevice = (event) => {
+        const selectedDevice = event.target.value;
+        if (selectedDevice && !formData.dispositivos.includes(selectedDevice)) {
             setFormData(prevForm => ({
                 ...prevForm,
-                dispositivos: prevForm.dispositivos.slice(0, -1)
+                dispositivos: [...prevForm.dispositivos, selectedDevice]
             }));
         }
     };
 
-    // ✅ Función para buscar dispositivos en la API mientras el usuario escribe
-    const buscarDispositivos = (query) => {
-        if (query.length > 1) {
-            fetch(`http://127.0.0.1:8000/vulnet/api/v1/devicemodels/?q=${query}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.models && Array.isArray(data.models)) {
-                        setSugerencias(data.models);
-                    }
-                })
-                .catch(error => console.error('Error en la búsqueda de dispositivos:', error));
-        } else {
-            setSugerencias([]); // ✅ Si el campo está vacío, limpia las sugerencias
-        }
-    };
-
-    const handleDispositivoChange = (index, value) => {
-        const newDispositivos = [...formData.dispositivos];
-        newDispositivos[index] = value;
-        setFormData({ ...formData, dispositivos: newDispositivos });
-        buscarDispositivos(value); // ✅ Llamamos a la función de búsqueda
+    // ✅ Eliminar un dispositivo de la lista
+    const handleRemoveDevice = (index) => {
+        setFormData(prevForm => ({
+            ...prevForm,
+            dispositivos: prevForm.dispositivos.filter((_, i) => i !== index)
+        }));
     };
 
     const handleSubmit = async (e) => {
@@ -57,8 +47,8 @@ const EstanciaForm = ({ onClose, onEstanciaCreated }) => {
             });
 
             if (response.ok) {
-                onEstanciaCreated(); // ✅ Llamamos a la función para actualizar la lista en `EstanciaPage`
-                onClose(); // ✅ Cerrar el modal
+                onEstanciaCreated(); 
+                onClose(); 
             } else {
                 console.error("Error al enviar el formulario");
             }
@@ -84,32 +74,35 @@ const EstanciaForm = ({ onClose, onEstanciaCreated }) => {
                             required 
                         />
                     </div>
+
+                    {/* 🔹 Select para añadir dispositivos desde la base de datos */}
                     <div style={styles.formGroup}>
-                        <label>Número de Dispositivos:</label>
-                        <div style={styles.deviceControl}>
-                            <button type="button" onClick={handleRemoveDevice} style={styles.deviceButton}> ➖ </button>
-                            <span>{formData.dispositivos.length}</span>
-                            <button type="button" onClick={handleAddDevice} style={styles.deviceButton}> ➕ </button>
-                        </div>
+                        <label>Añadir Dispositivo:</label>
+                        <select style={styles.input} onChange={handleAddDevice} defaultValue="">
+                            <option value="" disabled>Selecciona un dispositivo</option>
+                            {dispositivosDisponibles.map((device, index) => (
+                                <option key={index} value={device.model}>{device.model}</option>
+                            ))}
+                        </select>
                     </div>
-                    {formData.dispositivos.map((_, index) => (
-                        <div key={index} style={{ position: 'relative' }}>
-                            <label>Dispositivo {index + 1}: </label>
-                            <input
-                                style={styles.input}
-                                type="text"
-                                value={formData.dispositivos[index]}
-                                onChange={(e) => handleDispositivoChange(index, e.target.value)}
-                                required
-                                list={`sugerencias-dispositivos-${index}`} // ✅ Conecta con `datalist`
-                            />
-                            <datalist id={`sugerencias-dispositivos-${index}`}>
-                                {sugerencias.map((nombre, i) => (
-                                    <option key={i} value={nombre} />
-                                ))}
-                            </datalist>
-                        </div>
-                    ))}
+
+                    {/* 🔹 Lista de dispositivos seleccionados */}
+                    <div style={styles.formGroup}>
+                        <label>Dispositivos en la Estancia:</label>
+                        <ul style={styles.list}>
+                            {formData.dispositivos.length > 0 ? (
+                                formData.dispositivos.map((dispositivo, index) => (
+                                    <li key={index} style={styles.listItem}>
+                                        {dispositivo}
+                                        <button style={styles.deleteButton} onClick={() => handleRemoveDevice(index)}>X</button>
+                                    </li>
+                                ))
+                            ) : (
+                                <p style={{ color: "white", fontStyle: "italic" }}>No hay dispositivos seleccionados.</p>
+                            )}
+                        </ul>
+                    </div>
+
                     <button type="submit" style={styles.saveButton}>Crear</button>
                 </form>
             </div>
@@ -117,7 +110,7 @@ const EstanciaForm = ({ onClose, onEstanciaCreated }) => {
     );
 };
 
-// ✅ **Estilos en JS (CSS-in-JS)**
+// ✅ **Estilos Mejorados**
 const styles = {
     modal: {
         position: "fixed",
@@ -172,6 +165,33 @@ const styles = {
         color: "black",
         textAlign: "center",
         transition: "border 0.3s ease-in-out"
+    },
+    list: {
+        listStyleType: "none",
+        padding: "0",
+        marginTop: "10px"
+    },
+    listItem: {
+        background: "#303030",
+        padding: "12px",
+        margin: "8px 0",
+        borderRadius: "8px",
+        textAlign: "center",
+        color: "white",
+        fontWeight: "bold",
+        fontSize: "16px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+    },
+    deleteButton: {
+        background: "red",
+        color: "white",
+        border: "none",
+        padding: "5px 10px",
+        borderRadius: "5px",
+        cursor: "pointer",
+        fontSize: "14px"
     },
     saveButton: {
         width: "100%",
