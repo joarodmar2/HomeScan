@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
 from vulnet_app import views
-from .views import EstanciaView,buscar_dispositivos
+from .views import EstanciaView,buscar_dispositivos,OSVVulnerabilityView
 
 router = routers.DefaultRouter()
 router.register(r"devices", views.DeviceView, "devices")
@@ -36,14 +36,15 @@ urlpatterns = [
     path('api/v1/devicapabilities/', views.getDeviceCapabilities.as_view(), name="devicapabilities"),
     path('api/v1/connectionprotocols/', views.getConnectionProtocols.as_view(), name="connectionprotocols"),
     path('api/v1/connectiongraph/', views.getConnectionGraph.as_view(), name="connectiongraph"),
-    path("api/Estancia/", EstanciaView.as_view(), name="Estancia_list"),
-    path("api/Estancia/<int:pk>/", EstanciaView.as_view(), name="Estancia_detail"),
+    path("api/v1/Estancia/", EstanciaView.as_view(), name="Estancia_list"),
+    path("api/v1/Estancia/<int:pk>/", EstanciaView.as_view(), name="Estancia_detail"),
     path('api/buscar-dispositivo/', buscar_dispositivos, name='buscar_dispositivo'),
 
     path('api/v1/createobject/', views.CreateObject.as_view(), name="createObject"),
     path('api/v1/deleteobject/<int:pk>/', views.DeleteObject.as_view(), name="deleteObject"),
     path('api/v1/updateobject/<int:id>/', views.updateObject.as_view(), name="updateObject"),
-
+    path('api/v1/vulnerabilities/<str:ecosystem>/<str:package_name>/', OSVVulnerabilityView.as_view(), name='osv_vulnerabilities'),
+    
 
 
 ]

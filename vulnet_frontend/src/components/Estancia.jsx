@@ -12,7 +12,7 @@ const Estancia = () => {
 
     useEffect(() => {
         // 🔹 Obtiene TODAS las estancias
-        fetch(`http://127.0.0.1:8000/vulnet/api/Estancia/`)
+        fetch(`http://127.0.0.1:8000/vulnet/api/v1/Estancia/`)
             .then(response => response.json())
             .then(data => {
                 console.log("Datos completos recibidos desde API:", data);
@@ -59,7 +59,7 @@ const Estancia = () => {
     // ✅ Función para actualizar la estancia en la API
     const updateEstancia = async () => {
         try {
-            const response = await fetch(`http://127.0.0.1:8000/vulnet/api/Estancia/${estancia.id}/`, {
+            const response = await fetch(`http://127.0.0.1:8000/vulnet/api/v1/Estancia/${estancia.id}/`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

@@ -10,10 +10,13 @@ from django.http import HttpResponse, JsonResponse
 from django.core import serializers
 from rest_framework.decorators import api_view
 from django.shortcuts import get_object_or_404
-
+from django.views import View
+import requests
 import json
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
-
+## Este archivo vale para definir las vistas de la API y eso significa que aquí se definen las operaciones GET POST PUT DELETE. 
 class EstanciaView(APIView):
 
     # Obtener todas las Estancias
@@ -609,8 +612,27 @@ class updateObject(APIView):
 
         return Response(status=status.HTTP_200_OK)
 
+#Consulta a la API de OSV.dev
 
+@method_decorator(csrf_exempt, name='dispatch')  # Desactiva CSRF temporalmente para pruebas
+class OSVVulnerabilityView(View):
+    
+    def post(self, request, ecosystem, package_name):
+        """
+        Consulta la API de OSV.dev usando el método POST.
+        """
+        url = "https://api.osv.dev/v1/query"
+        data = {
+            "package": {
+                "name": package_name,
+                "ecosystem": ecosystem
+            }
+        }
 
+        response = requests.post(url, json=data)
 
-
+        if response.status_code == 200:
+            return JsonResponse(response.json())
+        else:
+            return JsonResponse({'error': 'Error al consultar OSV.dev', 'status': response.status_code}, status=response.status_code)
     

@@ -18,6 +18,7 @@ import EstanciaPage from "./pages/EstanciaPage";
 import Estancia from "./components/Estancia";
 import ThreeScene from "./components/ThreeScene";
 
+import VulnerabilityPage from "./pages/VulnerabilityPage";  // Importamos la nueva página
 
 function App() {
   return (
@@ -41,7 +42,8 @@ function App() {
           <Route path="/estancia/:nombre" element={<Estancia />} /> 
           <Route path="/estancia/:nombre/objetos" element={<Objects />} /> 
           <Route path="/modelado" element={<ThreeScene />} />
-          
+          <Route path="/vulnerabilities" element={<VulnerabilityPage />} />
+
 
           
         </Routes>

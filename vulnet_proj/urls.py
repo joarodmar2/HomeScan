@@ -20,5 +20,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('vulnet/', include('vulnet_app.urls')),
     
+    
 ]
 

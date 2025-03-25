@@ -36,6 +36,9 @@ export function Navigation() {
       <button style={{ backgroundColor: "gray", padding: "10px 15px", borderRadius: "8px", whiteSpace: "nowrap" }}>
         <Link to="/connection-create">Create Connection</Link>
       </button>
+      <button style={{ backgroundColor: "gray", padding: "10px 15px", borderRadius: "8px", whiteSpace: "nowrap" }}>
+      <Link to="/vulnerabilities" className="text-white">Vulnerabilidades</Link>
+      </button>
     </div>
   );
   
