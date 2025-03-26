@@ -62,7 +62,7 @@ const EstanciaPage = () => {
         <div key={estancia.id} style={styles.card}>
             <h3
                 style={styles.nombreEstancia}
-                onClick={() => navigate(`/estancia/${encodeURIComponent(estancia.nombreEstancia)}/objetos`)}
+                onClick={() => navigate(`/estancia/${encodeURIComponent(estancia.nombreEstancia)}/modelado`)}
             >
                 {estancia.nombreEstancia}
             </h3>

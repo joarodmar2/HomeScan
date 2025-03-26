@@ -40,7 +40,7 @@ function App() {
           <Route path="/objetos" element={<Objects />} />
           <Route path="/estancia" element={<EstanciaPage />} />
           <Route path="/estancia/:nombre" element={<Estancia />} /> 
-          <Route path="/estancia/:nombre/objetos" element={<Objects />} /> 
+          <Route path="/estancia/:nombreEstancia/modelado" element={<ThreeScene />} />
           <Route path="/modelado" element={<ThreeScene />} />
           <Route path="/vulnerabilities" element={<VulnerabilityPage />} />
 

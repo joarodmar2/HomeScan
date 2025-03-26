@@ -38,6 +38,9 @@ urlpatterns = [
     path('api/v1/connectiongraph/', views.getConnectionGraph.as_view(), name="connectiongraph"),
     path("api/v1/Estancia/", EstanciaView.as_view(), name="Estancia_list"),
     path("api/v1/Estancia/<int:pk>/", EstanciaView.as_view(), name="Estancia_detail"),
+
+    path("api/v1/Estancia/nombre/<str:nombreEstancia>/", EstanciaView.as_view(), name="estancia_por_nombre"),
+
     path('api/buscar-dispositivo/', buscar_dispositivos, name='buscar_dispositivo'),
 
     path('api/v1/createobject/', views.CreateObject.as_view(), name="createObject"),

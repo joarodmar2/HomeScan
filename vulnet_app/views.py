@@ -20,15 +20,22 @@ from django.views.decorators.csrf import csrf_exempt
 class EstanciaView(APIView):
 
     # Obtener todas las Estancias
-    def get(self, request, pk=None, format=None):
+    def get(self, request, pk=None, nombreEstancia=None, format=None):
         if pk:
             estancia = get_object_or_404(Estancia, id=pk)
             serializer = EstanciaSerializer(estancia)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+        elif nombreEstancia:
+            estancia = get_object_or_404(Estancia, nombreEstancia=nombreEstancia)
+            serializer = EstanciaSerializer(estancia)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
         else:
             estancias = Estancia.objects.all()
             serializer = EstanciaSerializer(estancias, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        
 
     # Crear una nueva Estancia
     def post(self, request, format=None):
