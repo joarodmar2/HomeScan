@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
 from vulnet_app import views
-from .views import EstanciaView,buscar_dispositivos,OSVVulnerabilityView
+from .views import EstanciaView,buscar_dispositivos,OSVVulnerabilityView,actualizar_posicion_mueble
 
 router = routers.DefaultRouter()
 router.register(r"devices", views.DeviceView, "devices")
@@ -47,7 +47,10 @@ urlpatterns = [
     path('api/v1/deleteobject/<int:pk>/', views.DeleteObject.as_view(), name="deleteObject"),
     path('api/v1/updateobject/<int:id>/', views.updateObject.as_view(), name="updateObject"),
     path('api/v1/vulnerabilities/<str:ecosystem>/<str:package_name>/', OSVVulnerabilityView.as_view(), name='osv_vulnerabilities'),
-    
+    path('api/v1/muebles/', views.MuebleListCreateView.as_view(), name="muebles_list_create"),
+    path('api/v1/muebles/estancia/<int:estancia_id>/', views.obtener_muebles_por_estancia, name='muebles_por_estancia'),
+    path('api/v1/muebles/update-position/<int:mueble_id>/', views.actualizar_posicion_mueble, name='actualizar_posicion_mueble'),
+
 
 
 ]

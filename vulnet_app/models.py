@@ -51,12 +51,27 @@ class ConnectionVulnerability(models.Model):
     def __str__(self):
        return str(self.name)
     
+from django.db import models
+
 class Estancia(models.Model):
-    nombreEstancia = models.CharField(max_length=255)
-    dispositivos = models.JSONField(default=list)  # Lista de dispositivos en formato JSON
+    nombreEstancia = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombreEstancia
+
+class Mueble(models.Model):
+    estancia = models.ForeignKey(Estancia, on_delete=models.CASCADE, related_name="muebles")
+    tipo = models.CharField(max_length=50)  # Tipo libre
+    x = models.IntegerField()               # Posición X en el canvas
+    y = models.IntegerField()               # Posición Y en el canvas
+    width = models.IntegerField()           # Ancho del mueble
+    height = models.IntegerField()          # Alto del mueble
+    rotation = models.FloatField()          # Rotación en grados
+    imagen = models.ImageField(upload_to="muebles/", null=True, blank=True)  # Imagen opcional
+
+    def __str__(self):
+        return f"{self.tipo} ({self.x}, {self.y})"
+
 
 class formularioObject(models.Model):
     name = models.TextField(blank=False)

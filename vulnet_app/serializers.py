@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from .models import Device,Vulnerability,Connection,ConnectionVulnerability, Estancia
-from .models import Device,Vulnerability,Connection,ConnectionVulnerability,formularioObject
+from .models import Device,Vulnerability,Connection,ConnectionVulnerability, Estancia,formularioObject, Mueble
 
+#El serializer en Django REST Framework sirve para convertir entre objetos de Django (modelos) y formatos como JSON, 
+# que puedes enviar o recibir desde el frontend.
 
 
 class VulnerabilitySerializer(serializers.ModelSerializer):
@@ -39,3 +40,8 @@ class ObjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = formularioObject
         fields = '__all__'
+
+class MuebleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Mueble
+        fields = '__all__'  # Incluye todos los campos del modelo

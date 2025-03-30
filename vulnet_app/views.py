@@ -1,11 +1,9 @@
 from rest_framework import viewsets
-from .serializers import DeviceSerializer,VulnerabilitySerializer,ConnectionSerializer,ConnectionVulnerabilitySerializer,EstanciaSerializer
-from .models import Device,Vulnerability,Connection,ConnectionVulnerability,Estancia
-from .serializers import DeviceSerializer,VulnerabilitySerializer,ConnectionSerializer,ConnectionVulnerabilitySerializer,ObjectSerializer
-from .models import Device,Vulnerability,Connection,ConnectionVulnerability,formularioObject
+from .serializers import DeviceSerializer,VulnerabilitySerializer,ConnectionSerializer,ConnectionVulnerabilitySerializer,EstanciaSerializer,ObjectSerializer,MuebleSerializer
+from .models import Device,Vulnerability,Connection,ConnectionVulnerability,formularioObject,Estancia,Mueble
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status,generics
 from django.http import HttpResponse, JsonResponse
 from django.core import serializers
 from rest_framework.decorators import api_view
@@ -16,7 +14,37 @@ import json
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-## Este archivo vale para definir las vistas de la API y eso significa que aquí se definen las operaciones GET POST PUT DELETE. 
+## Este archivo vale para definir las vistas de la API y eso significa que aquí se definen las operaciones GET POST PUT DELETE. Las funciones para obtener borrar modificar y eliminar cosas de la base de datos.
+
+
+class MuebleListCreateView(generics.ListCreateAPIView):
+    queryset = Mueble.objects.all()
+    serializer_class = MuebleSerializer
+
+class MuebleRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Mueble.objects.all()
+    serializer_class = MuebleSerializer
+
+@api_view(['GET'])
+def obtener_muebles_por_estancia(request, estancia_id):
+    muebles = Mueble.objects.filter(estancia_id=estancia_id)
+    serializer = MuebleSerializer(muebles, many=True)
+    return Response(serializer.data)
+@api_view(['POST'])
+def actualizar_posicion_mueble(request, mueble_id):
+    try:
+        mueble = Mueble.objects.get(id=mueble_id)
+    except Mueble.DoesNotExist:
+        return Response({'error': 'Mueble no encontrado'}, status=404)
+
+    campos_actualizables = ['x', 'y', 'width', 'height', 'rotation']
+    for campo in campos_actualizables:
+        if campo in request.data:
+            setattr(mueble, campo, request.data[campo])
+
+    mueble.save()
+    return Response({'mensaje': 'Posición actualizada correctamente'})
+
 class EstanciaView(APIView):
 
     # Obtener todas las Estancias
