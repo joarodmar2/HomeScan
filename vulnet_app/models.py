@@ -3,7 +3,7 @@ from django.db import models
 
 # Create your models here.
 class Device(models.Model):
-    model = models.TextField(blank=False)
+    model = models.TextField(blank=False, unique=True)
     type = models.TextField(blank=False)
     category = models.TextField(blank=False)
 
