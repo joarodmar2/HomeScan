@@ -1,24 +1,28 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 
 const Estancia = () => {
-    const { nombre } = useParams(); // Usamos el hook useParams para obtener el parámetro de la URL. En este caso, el nombre de la estancia.
+    const { nombre } = useParams();
     const [estancia, setEstancia] = useState(null);
-    const [dispositivosDisponibles, setDispositivosDisponibles] = useState([]); // Lista de dispositivos
+    const [dispositivosEstancia, setDispositivosEstancia] = useState([]);
+    const [dispositivosDisponibles, setDispositivosDisponibles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const navigate = useNavigate();  
+    const navigate = useNavigate();
 
     useEffect(() => {
-        // 🔹 Obtiene TODAS las estancias
-        fetch(`http://127.0.0.1:8000/vulnet/api/v1/Estancia/`)
+        fetch("http://127.0.0.1:8000/vulnet/api/v1/Estancia/")
             .then(response => response.json())
             .then(data => {
-                console.log("Datos completos recibidos desde API:", data);
                 const estanciaFiltrada = data.find(e => e.nombreEstancia.toLowerCase() === nombre.toLowerCase());
                 if (estanciaFiltrada) {
                     setEstancia(estanciaFiltrada);
+
+                    // Cargar dispositivos de esta estancia
+                    fetch(`http://127.0.0.1:8000/vulnet/api/v1/devices/?estancia=${estanciaFiltrada.id}`)
+                        .then(res => res.json())
+                        .then(data => setDispositivosEstancia(data))
+                        .catch(err => console.error("Error al cargar dispositivos:", err));
                 } else {
                     setEstancia(null);
                 }
@@ -30,33 +34,32 @@ const Estancia = () => {
                 setLoading(false);
             });
 
-        // 🔹 Obtiene TODOS los dispositivos disponibles en la base de datos
-        fetch(`http://127.0.0.1:8000/vulnet/api/v1/devices/`)
+        fetch("http://127.0.0.1:8000/vulnet/api/v1/devices/")
             .then(response => response.json())
             .then(data => {
-                setDispositivosDisponibles(data); // Guarda los dispositivos en el estado
+                setDispositivosDisponibles(data);
             })
             .catch(error => console.error("Error al obtener los dispositivos:", error));
-    }, [nombre]); // Importante--> Este useEffect solo se ejecuta cuando nombre cambia.
+    }, [nombre]);
 
-    // ✅ Función para eliminar un dispositivo de la estancia
-    const handleDeleteDevice = (index) => {
-        const updatedDevices = estancia.dispositivos.filter((_, i) => i !== index);
+    const handleDeleteDevice = (deviceIdToRemove) => {
+        const updatedDevices = estancia.dispositivos.filter(id => id !== deviceIdToRemove);
         setEstancia({ ...estancia, dispositivos: updatedDevices });
     };
+    
 
-    // ✅ Función para añadir un dispositivo desde el select
+
     const handleAddDevice = (event) => {
-        const selectedDevice = event.target.value;
-        if (selectedDevice) {
-            setEstancia(prevState => ({
-                ...prevState,
-                dispositivos: [...prevState.dispositivos, selectedDevice]
+        const selectedDeviceId = parseInt(event.target.value);
+        if (selectedDeviceId && !estancia.dispositivos.includes(selectedDeviceId)) {
+            setEstancia(prev => ({
+                ...prev,
+                dispositivos: [...prev.dispositivos, selectedDeviceId]
             }));
         }
     };
+    
 
-    // ✅ Función para actualizar la estancia en la API
     const updateEstancia = async () => {
         try {
             const response = await fetch(`http://127.0.0.1:8000/vulnet/api/v1/Estancia/${estancia.id}/`, {
@@ -69,19 +72,22 @@ const Estancia = () => {
                     dispositivos: estancia.dispositivos
                 }),
             });
-
+    
             if (response.ok) {
-                console.log("Estancia actualizada con éxito");
                 alert("Los cambios han sido guardados correctamente.");
                 navigate("/Estancia");
             } else {
-                console.error("Error al actualizar la estancia");
                 alert("Hubo un error al guardar los cambios.");
             }
         } catch (error) {
-            console.error("Error en la conexión con el servidor:", error);
             alert("Error de conexión con el servidor.");
+            console.error(error);
         }
+    };
+    
+
+    const AñadirDispositivoEstancia = () => {
+        navigate(`/estancias/${estancia.id}/dispositivos/nuevo`);
     };
 
     if (loading) {
@@ -97,42 +103,68 @@ const Estancia = () => {
     }
 
     return (
-        //Editar la estancia
-        <div style={styles.pageContainer}>      
+        <div style={styles.pageContainer}>
             <div style={styles.card}>
                 <h2 style={styles.nombre}>{estancia.nombreEstancia}</h2>
 
                 <p style={styles.subtitulo}> Dispositivos:</p>
                 <ul style={styles.list}>
                     {estancia.dispositivos.length > 0 ? (
-                        estancia.dispositivos.map((dispositivo, index) => (
-                            <li key={index} style={styles.listItem}>
-                                {dispositivo}
-                                <button style={styles.deleteButton} onClick={() => handleDeleteDevice(index)}>X</button>
-                            </li>
-                        ))
+                        estancia.dispositivos.map((deviceId) => {
+                            const device = dispositivosDisponibles.find(d => d.id === deviceId);
+                            return (
+                                <li key={deviceId} style={styles.listItem}>
+                                    {device ? device.model : `ID ${deviceId}`}
+                                    <button
+                                        style={styles.deleteButton}
+                                        onClick={() => handleDeleteDevice(deviceId)}
+                                    >
+                                        X
+                                    </button>
+                                </li>
+                            );
+                        })
                     ) : (
-                        <p style={{ color: "white", fontStyle: "italic" }}>No hay dispositivos en esta estancia.</p>
+                        <p style={{ color: "white", fontStyle: "italic" }}>
+                            No hay dispositivos en esta estancia.
+                        </p>
                     )}
                 </ul>
 
-                {/* 🔹 Select para añadir dispositivos desde la base de datos */}
-                <div style={styles.addDeviceContainer}> 
+                {/* 🔹 Select para añadir dispositivos */}
+                <div style={styles.addDeviceContainer}>
                     <select style={styles.input} onChange={handleAddDevice} defaultValue="">
                         <option value="" disabled>Selecciona un dispositivo</option>
-                        {dispositivosDisponibles.map((device, index) => (
-                            <option key={index} value={device.model}>{device.model} </option>
+                        {dispositivosDisponibles.map((device) => (
+                            <option key={device.id} value={device.id}>{device.model}</option>
                         ))}
                     </select>
                 </div>
 
+
                 <button style={styles.saveButton} onClick={updateEstancia}>Guardar</button>
+                <button
+                    onClick={AñadirDispositivoEstancia}
+                    style={{
+                        position: "absolute",
+                        top: 20,
+                        right: 20,
+                        padding: "10px 20px",
+                        borderRadius: "8px",
+                        background: "#007bff",
+                        color: "#fff",
+                        border: "none",
+                        cursor: "pointer",
+                        zIndex: 10
+                    }}
+                >
+                    Añadir dispositivo
+                </button>
             </div>
         </div>
     );
 };
 
-// ✅ **Estilos**
 const styles = {
     pageContainer: {
         backgroundColor: "#121212",

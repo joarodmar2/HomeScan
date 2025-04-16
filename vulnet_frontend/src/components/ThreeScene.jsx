@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import FurnitureForm from "./FurnitureForm";
 
 const CanvasRoom = () => {
     const canvasRef = useRef(null);
@@ -14,11 +15,19 @@ const CanvasRoom = () => {
     const [offset, setOffset] = useState({ x: 0, y: 0 });
     const [draggingItem, setDraggingItem] = useState(null);
     const [resizing, setResizing] = useState(null);
-    const furnitureImages = {
-        mesa: "/muebles/mesa.png",
-        silla: "/muebles/silla.png"
-    };
+    const [backgroundImage, setBackgroundImage] = useState("http://localhost:8000/media/textures/wood.jpg");
+    const [bgImgObject, setBgImgObject] = useState(null);
+    const [showForm, setShowForm] = useState(false);
 
+    // Cargar imagen de fondo con crossOrigin
+    useEffect(() => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = `${backgroundImage}?t=${Date.now()}`;
+        img.onload = () => setBgImgObject(img);
+    }, [backgroundImage]);
+
+    // Obtener estanciaId
     useEffect(() => {
         fetch(`http://localhost:8000/vulnet/api/v1/Estancia/nombre/${encodeURIComponent(nombreEstancia)}/`)
             .then(response => response.json())
@@ -26,6 +35,7 @@ const CanvasRoom = () => {
             .catch(error => console.error("Error al obtener la estancia:", error));
     }, [nombreEstancia]);
 
+    // Obtener muebles
     useEffect(() => {
         if (estanciaId) {
             fetch(`http://localhost:8000/vulnet/api/v1/muebles/estancia/${estanciaId}/`)
@@ -39,6 +49,7 @@ const CanvasRoom = () => {
         }
     }, [estanciaId]);
 
+    // Obtener datos de la estancia
     useEffect(() => {
         fetch(`http://localhost:8000/vulnet/api/v1/Estancia/nombre/${encodeURIComponent(nombreEstancia)}/`)
             .then(res => res.json())
@@ -46,84 +57,82 @@ const CanvasRoom = () => {
             .catch(err => console.error("Error al cargar la estancia:", err));
     }, [nombreEstancia]);
 
+    // Dibujar el canvas
     useEffect(() => {
-        drawCanvas();
-    }, [furniture, selectedItem, rotations, estancia]);
+        if (!canvasRef.current || !estancia || !bgImgObject) return;
 
-    //UseEffect para manejar el evento de teclado y poder rotar el mueble seleccionado
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(bgImgObject, 0, 0, canvas.width, canvas.height);
+
+        furniture.forEach((item, index) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = `http://localhost:8000/${item.imagen}`;
+            img.onload = () => {
+                ctx.save();
+                const rotationAngle = rotations[index] || 0;
+                ctx.translate(item.x + item.width / 2, item.y + item.height / 2);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                ctx.drawImage(img, -item.width / 2, -item.height / 2, item.width, item.height);
+                ctx.restore();
+
+                if (selectedItem === index) {
+                    // 👇 Recuadro de selección
+                    ctx.strokeStyle = "gray";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(item.x, item.y, item.width, item.height);
+            
+                    // Flechas para redimensionar (esquina inferior derecha)
+                    ctx.fillStyle = "white";
+                    ctx.fillText("↘️", item.x + item.width, item.y + item.height - 4);
+            
+                    // ❌ Botón para eliminar (esquina superior derecha)
+                    ctx.fillStyle = "red";
+                    ctx.beginPath();
+                    ctx.arc(item.x + item.width - 8, item.y + 8, 7, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.fillStyle = "white";
+                    ctx.font = "10px Arial";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("X", item.x + item.width - 8, item.y + 8);
+                }
+            
+            };
+        });
+    }, [bgImgObject, furniture, selectedItem, rotations, estancia]);
+
+    // Rotar con tecla "R"
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (selectedItem !== null && e.key.toLowerCase() === "r") {
-                setRotations((prev) => ({
+                setRotations(prev => ({
                     ...prev,
                     [selectedItem]: (prev[selectedItem] || 0) + 15
                 }));
             }
         };
-
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [selectedItem]);
 
-    const drawCanvas = () => {
-        if (!canvasRef.current || !estancia) return;
-
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-        const backgroundImg = new Image();
-        backgroundImg.src = `http://localhost:8000/media/textures/wood.jpg?t=${new Date().getTime()}`;
-
-        backgroundImg.onload = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
-
-            furniture.forEach((item, index) => {
-                const img = new Image();
-                img.src = `http://localhost:8000/${item.imagen}`;
-
-                img.onload = () => {
-                    ctx.save();
-                    const rotationAngle = rotations[index] || 0;
-                    ctx.translate(item.x + item.width / 2, item.y + item.height / 2);
-                    ctx.rotate(rotationAngle * Math.PI / 180);
-                    ctx.drawImage(img, -item.width / 2, -item.height / 2, item.width, item.height);
-                    // Dibuja el cuadrado blanco para redimensionar si está seleccionado
-                    
-
-                    ctx.restore();
-
-                    if (selectedItem === index) {
-                        ctx.strokeStyle = "gray";
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(item.x, item.y, item.width, item.height);
-                        ctx.fillStyle = "white";
-                        ctx.fillRect(item.x + item.width - 5, item.y + item.height - 5, 10, 10);
-                    }
-                };
-            });
-        };
-    };
-
+    // Manejo de mouse
     const handleMouseDown = (e) => {
         const rect = canvasRef.current.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-
         let clicked = false;
+
         furniture.forEach((item, index) => {
-            // Verificar si clic en la esquina inferior derecha (área para redimensionar)
-            if (
-                x >= item.x + item.width - 16 &&
-                x <= item.x + item.width &&
-                y >= item.y + item.height - 16 &&
-                y <= item.y + item.height
-            ) {
+            if (x >= item.x + item.width - 16 && x <= item.x + item.width &&
+                y >= item.y + item.height - 16 && y <= item.y + item.height) {
                 setResizing(index);
                 clicked = true;
                 return;
             }
-
-            // Verificar si clic dentro del mueble para mover
             if (x >= item.x && x <= item.x + item.width && y >= item.y && y <= item.y + item.height) {
                 setSelectedItem(index);
                 setDraggingItem(index);
@@ -133,19 +142,53 @@ const CanvasRoom = () => {
         });
 
         if (!clicked) setSelectedItem(null);
-    };
+        // Si hizo clic en la cruz del mueble seleccionado
+if (selectedItem !== null) {
+    const item = furniture[selectedItem];
+    const xClick = x;
+    const yClick = y;
 
+    const crossX = item.x + item.width - 8;
+    const crossY = item.y + 8;
+
+    const distance = Math.sqrt((xClick - crossX) ** 2 + (yClick - crossY) ** 2);
+
+    if (distance <= 8) {
+        const confirmar = window.confirm("¿Eliminar este mueble?");
+        if (confirmar) {
+            // Eliminar en el backend
+            fetch(`http://localhost:8000/vulnet/api/v1/muebles/${item.id}/`, {
+                method: "DELETE"
+            })
+                .then(res => {
+                    if (res.ok) {
+                        // Eliminar del estado local
+                        setFurniture(prev => prev.filter((_, i) => i !== selectedItem));
+                        setSelectedItem(null);
+                    } else {
+                        alert("❌ Error al eliminar el mueble.");
+                    }
+                })
+                .catch(err => {
+                    console.error("Error al eliminar:", err);
+                    alert("❌ Error al eliminar el mueble.");
+                });
+        }
+        return; // 👉 Salir del handleMouseDown para que no se active selección ni movimiento
+    }
+}
+
+    };
 
     const handleMouseMove = (e) => {
         const rect = canvasRef.current.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-
         const updatedFurniture = [...furniture];
 
         if (resizing !== null) {
             const item = updatedFurniture[resizing];
-            const newSize = Math.max(20, x - item.x); // Puedes usar el eje Y también para proporcionalidad
+            const newSize = Math.max(20, x - item.x);
             item.width = newSize;
             item.height = newSize;
             setFurniture(updatedFurniture);
@@ -160,19 +203,16 @@ const CanvasRoom = () => {
         }
     };
 
-
     const handleMouseUp = () => {
         setDraggingItem(null);
         setResizing(null);
     };
 
-
     const handleDrop = (e) => {
         e.preventDefault();
-        const canvasRect = canvasRef.current.getBoundingClientRect();
-        const x = e.clientX - canvasRect.left;
-        const y = e.clientY - canvasRect.top;
-
+        const rect = canvasRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
         const tipo = e.dataTransfer.getData("tipo");
         const imagen = e.dataTransfer.getData("imagen");
 
@@ -213,11 +253,13 @@ const CanvasRoom = () => {
 
     return (
         <div style={styles.container}>
-            <h1 style={styles.title}>Estancia: {nombreEstancia}</h1>
+            <h1 style={styles.title}>Room: {nombreEstancia}</h1>
 
             <div style={styles.content}>
                 <div style={styles.furniturePanel}>
-                    <h3 style={styles.panelTitle}>Muebles disponibles</h3>
+                    <h3 style={styles.panelTitle}>Muebles disponibles : </h3>
+                    <button onClick={() => setShowForm(true)} style={{ marginBottom: '10px' }}>+ Crear nuevo mueble</button>
+
                     {muebles.map((mueble, index) => (
                         <img
                             key={index}
@@ -231,6 +273,14 @@ const CanvasRoom = () => {
                             }}
                         />
                     ))}
+                    <select
+                        onChange={(e) => setBackgroundImage(e.target.value)}
+                        style={{ marginBottom: "15px", padding: "6px", borderRadius: "6px", color: "black" }}
+                    >
+                        <option value="http://localhost:8000/media/textures/wood.jpg">Madera marrón claro</option>
+                        <option value="http://localhost:8000/media/textures/baldosas.jpeg">Baldosas</option>
+                        <option value="http://localhost:8000/media/textures/dark_wood.png">Madera marrón oscuro</option>
+                    </select>
                 </div>
 
                 <canvas
@@ -246,13 +296,12 @@ const CanvasRoom = () => {
                 />
             </div>
 
-            <button onClick={guardarCambios} style={styles.button}>
-                Guardar Cambios
-            </button>
+            <button onClick={guardarCambios} style={styles.button}>Save Changes</button>
+            {showForm && <FurnitureForm estanciaId={estanciaId} onClose={() => setShowForm(false)} />}
         </div>
-
     );
 };
+
 const styles = {
     container: {
         display: "flex",
@@ -329,7 +378,5 @@ const styles = {
         transition: "background-color 0.3s ease",
     },
 };
-
-
 
 export default CanvasRoom;

@@ -9,7 +9,8 @@ import requests
 def vulns_search(model):
     model_url=model.replace(" ","%20")
     response = requests.get('https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch='+model_url).text
-
+    # Imprime la respuesta completa de la API para ver qué devuelve
+    # print("API Response:", response)
     vulns=[]
     json_object=json.loads(response)
     json_vulns=json_object["vulnerabilities"]

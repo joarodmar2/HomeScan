@@ -71,10 +71,30 @@ class EstanciaView(APIView):
         
         serializer = EstanciaSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print("Errores en la validación:", serializer.errors)  # ✅ Si hay errores, imprímelos
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            estancia = serializer.save()  # Esto ya te da la instancia creada
+
+    # Crear 4 muebles por defecto
+            Mueble.objects.create(
+                tipo="mesa",
+                x=50, y=50, width=100, height=100, rotation=0, visible=False,
+                imagen="/muebles/mesa2.png", estancia=estancia
+            )
+            Mueble.objects.create(
+                tipo="silla",
+                x=200, y=100, width=80, height=80, rotation=0, visible=False,
+                imagen="/muebles/silla.png", estancia=estancia
+            )
+            Mueble.objects.create(
+                tipo="sofa",
+                x=200, y=100, width=80, height=80, rotation=0, visible=False,
+                imagen="/muebles/sofa.png", estancia=estancia
+            )
+            Mueble.objects.create(
+                tipo="planta",
+                x=200, y=100, width=80, height=80, rotation=0, visible=False,
+                imagen="/muebles/planta.png", estancia=estancia
+            )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     # Actualizar una Estancia existente
     def put(self, request, pk, format=None):

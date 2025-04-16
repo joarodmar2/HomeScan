@@ -18,7 +18,7 @@ export const createDevice = (device) => devicesApi.post("/devices/", device);
 
 export const updateDevice = (id, device) => devicesApi.put(`/devices/${id}/`, device);
 
-export const deleteDevice = (id) => devicesApi.delete(`/devices/${id}`);
+export const deleteDevice = (id) => devicesApi.delete(`/devices/${id}/`);
 
 export const getNdevNvuln = () => devicesApi.get("/ndevnvuln/");
 

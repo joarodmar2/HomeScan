@@ -6,10 +6,27 @@ const EstanciaPage = () => {
     const navigate = useNavigate();
     const [Estancias, setEstancias] = useState([]);
     const [mostrarFormulario, setMostrarFormulario] = useState(false);
+    const [dispositivos, setDispositivos] = useState([]);
+    const [conexiones, setConexiones] = useState([]);
 
     useEffect(() => {
         fetchEstancias();
+
+        fetch("http://localhost:8000/vulnet/api/v1/devices/")
+            .then((res) => res.json())
+            .then(setDispositivos)
+            .catch((err) => console.error("Error al cargar dispositivos:", err));
+
+        fetch("http://localhost:8000/vulnet/api/v1/connections/")
+            .then((res) => res.json())
+            .then((data) => {
+                console.log("📡 Conexiones desde API:", data);  // <--- Aquí
+                setConexiones(data);
+            });
+
+
     }, []);
+
 
     const fetchEstancias = () => {
         fetch("http://localhost:8000/vulnet/api/v1/Estancia/")
@@ -22,7 +39,16 @@ const EstanciaPage = () => {
         fetchEstancias(); // 🔁 Vuelve a traer TODAS las estancias del backend
         setMostrarFormulario(false);
     };
-    
+    //Conexiones por estancia
+    const obtenerConexiones = (deviceId) => {
+        const conexionesDispositivo = conexiones.filter(
+            (conn) => conn.first_device === deviceId || conn.second_device === deviceId
+        );
+        const tipos = [...new Set(conexionesDispositivo.map((conn) => conn.type))];
+        return tipos;
+    };
+
+
 
     const handleDelete = async (id) => {
         try {
@@ -56,36 +82,91 @@ const EstanciaPage = () => {
             )}
 
             <div style={styles.grid}>
-            {Estancias
-    .filter(estancia => estancia && estancia.nombreEstancia)
-    .map((estancia) => (
-        <div key={estancia.id} style={styles.card}>
-            <h3
-                style={styles.nombreEstancia}
-                onClick={() => navigate(`/estancia/${encodeURIComponent(estancia.nombreEstancia)}/modelado`)}
-            >
-                {estancia.nombreEstancia}
-            </h3>
-            <p style={styles.subtitulo}>
-                Dispositivos: {estancia.dispositivos?.length || 0}
-            </p>
+                {Estancias
+                    .filter(estancia => estancia && estancia.nombreEstancia)
+                    .map((estancia) => (
+                        <div key={estancia.id} style={styles.card}>
+                            <h3
+                                style={styles.nombreEstancia}
+                                onClick={() => navigate(`/estancia/${encodeURIComponent(estancia.nombreEstancia)}/modelado`)}
+                            >
+                                {estancia.nombreEstancia}
+                            </h3>
+                            <ul style={{ padding: 0, listStyleType: "none" }}>
+                                {estancia.dispositivos?.length > 0 ? (
+                                    estancia.dispositivos.map((deviceId, idx) => {
+                                        // Buscar el dispositivo completo por ID
+                                        const dispositivo = dispositivos.find((d) => d.id === deviceId);
+                                        if (!dispositivo) return null;
 
-            <div style={styles.buttonsContainer}>
-                <button
-                    style={styles.editButton}
-                    onClick={() => navigate(`/estancia/${encodeURIComponent(estancia.nombreEstancia)}`)}
-                >
-                    Editar
-                </button>
-                <button
-                    style={styles.deleteButton}
-                    onClick={() => handleDelete(estancia.id)}
-                >
-                    Eliminar
-                </button>
-            </div>
-        </div>
-))}
+                                        // Buscar conexiones donde el dispositivo participa
+                                        const conexionesDelDispositivo = conexiones.filter(
+                                            (conn) =>
+                                                conn.first_device?.id === deviceId ||
+                                                conn.second_device?.id === deviceId
+                                        );
+
+                                        // Obtener tipos de conexión únicos
+                                        const tipos = [...new Set(conexionesDelDispositivo.map(conn => conn.type))];
+
+                                        return (
+                                            <li
+                                                key={idx}
+                                                style={{
+                                                    marginBottom: "6px",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: "6px",
+                                                    fontSize: "14px",
+                                                    color: "white"
+                                                }}
+                                            >
+                                                {dispositivo.model}
+                                                {tipos.length > 0 && (
+                                                    <div style={{ display: "flex", gap: "6px" }}>
+                                                        {tipos.map((tipo, i) => (
+                                                            <img
+                                                                key={i}
+                                                                src={`http://localhost:8000/media/connections/${tipo.toLowerCase().replace(/[\s\-]/g, "")}.png`}
+                                                                alt={tipo}
+                                                                title={tipo}
+                                                                style={{ width: "18px", height: "18px" }}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                            </li>
+                                        );
+                                    })
+                                ) : (
+                                    <li style={{ fontStyle: "italic", color: "white", fontSize: "14px" }}>
+                                        No hay dispositivos
+                                    </li>
+                                )}
+                            </ul>
+
+
+
+
+
+
+                            <div style={styles.buttonsContainer}>
+                                <button
+                                    style={styles.editButton}
+                                    onClick={() => navigate(`/estancia/${encodeURIComponent(estancia.nombreEstancia)}`)}
+                                >
+                                    Editar
+                                </button>
+                                <button
+                                    style={styles.deleteButton}
+                                    onClick={() => handleDelete(estancia.id)}
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    ))}
             </div>
         </div>
     );

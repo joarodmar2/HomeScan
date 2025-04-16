@@ -6,7 +6,7 @@ class Device(models.Model):
     model = models.TextField(blank=False, unique=True)
     type = models.TextField(blank=False)
     category = models.TextField(blank=False)
-
+    
     def __str__(self):
         return self.model
     
@@ -55,6 +55,7 @@ from django.db import models
 
 class Estancia(models.Model):
     nombreEstancia = models.CharField(max_length=100, unique=True)
+    dispositivos = models.ManyToManyField(Device, related_name="estancias", blank=True)
 
     def __str__(self):
         return self.nombreEstancia
@@ -62,12 +63,13 @@ class Estancia(models.Model):
 class Mueble(models.Model):
     estancia = models.ForeignKey(Estancia, on_delete=models.CASCADE, related_name="muebles")
     tipo = models.CharField(max_length=50)  # Tipo libre
-    x = models.IntegerField()               # Posición X en el canvas
-    y = models.IntegerField()               # Posición Y en el canvas
+    x = models.IntegerField(blank=True, null=True)               # Posición X en el canvas
+    y = models.IntegerField(blank=True, null=True)               # Posición Y en el canvas
     width = models.IntegerField()           # Ancho del mueble
     height = models.IntegerField()          # Alto del mueble
     rotation = models.FloatField()          # Rotación en grados
     imagen = models.ImageField(upload_to="muebles/", null=True, blank=True)  # Imagen opcional
+    visible = models.BooleanField(default=False)  # 👈 NUEVO CAMPO
 
     def __str__(self):
         return f"{self.tipo} ({self.x}, {self.y})"

@@ -30,9 +30,14 @@ class ConnectionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class EstanciaSerializer(serializers.ModelSerializer):
+    dispositivos = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Device.objects.all()
+    )
+
     class Meta:
         model = Estancia
-        fields = '__all__'
+        fields = ['id', 'nombreEstancia', 'dispositivos']
+        
 class ObjectSerializer(serializers.ModelSerializer):
     first_device = DeviceSerializer()
     second_device = DeviceSerializer()

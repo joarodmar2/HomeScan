@@ -8,30 +8,35 @@ django.setup()
 
 from vulnet_app.models import Device
 
-def importar_dispositivos():
-    try:
-        with open('dispositivos.json', 'r', encoding='utf-8') as archivo:
-            dispositivos = json.load(archivo)
+import time
 
-            for dispositivo in dispositivos:
+def importar_dispositivos(batch_size=4, delay=31):
+    with open('dispositivos.json', 'r', encoding='utf-8') as archivo:
+        dispositivos = json.load(archivo)
+
+        total = len(dispositivos)
+        for i in range(0, total, batch_size):
+            lote = dispositivos[i:i + batch_size]
+
+            for dispositivo in lote:
                 try:
-                    # Comprobar si el dispositivo ya existe en la base de datos
                     if not Device.objects.filter(model=dispositivo['model']).exists():
                         device = Device(
                             model=dispositivo['model'],
                             type=dispositivo['type'],
                             category=dispositivo['category']
                         )
-                        device.save()  # Guardar el dispositivo en la base de datos
-                        print(f"Dispositivo {dispositivo['model']} importado correctamente.")
+                        device.save()  # Esto dispara la llamada a la API
+                        print(f"Dispositivo {dispositivo['model']} importado.")
                     else:
-                        print(f"Dispositivo {dispositivo['model']} ya existe en la base de datos.")
-                except django.db.IntegrityError as e:
-                    print(f"Error de integridad en el dispositivo {dispositivo['model']}: {e}")
+                        print(f"Dispositivo {dispositivo['model']} ya existe.")
                 except Exception as e:
-                    print(f"Error al procesar dispositivo {dispositivo['model']}: {e}")
-    except Exception as e:
-        print(f"Error al abrir el archivo JSON: {e}")
+                    print(f"Error con {dispositivo['model']}: {e}")
+
+            if i + batch_size < total:
+                print(f"Esperando {delay}s antes del siguiente lote...")
+                time.sleep(delay)
+
 
 # Ejecutar la función para importar los dispositivos
 importar_dispositivos()
