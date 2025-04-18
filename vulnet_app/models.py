@@ -14,14 +14,15 @@ class Device(models.Model):
 class Vulnerability(models.Model):
     name = models.TextField()
     description = models.TextField()
-    baseSeverity = models.TextField()
+    baseSeverity = models.TextField(null=True, blank=True)
     version = models.FloatField()
     cvss=models.FloatField()
-    explotability=models.FloatField()
+    exploitability=models.FloatField()
     impact=models.FloatField()
     cwe = models.TextField()
     vector= models.TextField()
     device = models.ForeignKey(Device, on_delete=models.CASCADE, related_name="vulnerabilities")
+    source = models.CharField(max_length=50, default="NVD")  # para determinar si la vulnerabilidad es de NVD o OSV
 
     def __str__(self):
        return str(self.name)
@@ -42,7 +43,7 @@ class ConnectionVulnerability(models.Model):
     baseSeverity = models.TextField()
     version = models.FloatField()
     cvss=models.FloatField()
-    explotability=models.FloatField()
+    exploitability=models.FloatField()
     impact=models.FloatField()
     cwe = models.TextField()
     vector= models.TextField()

@@ -13,9 +13,35 @@ import requests
 import json
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from collections import Counter
 
 ## Este archivo vale para definir las vistas de la API y eso significa que aquí se definen las operaciones GET POST PUT DELETE. Las funciones para obtener borrar modificar y eliminar cosas de la base de datos.
 
+from django.shortcuts import render
+from django.http import JsonResponse
+from .models import Estancia
+
+class VulnerabilidadesPorEstancia(APIView):
+    def get(self, request):
+        resultado = []
+
+        estancias = Estancia.objects.all()
+
+        for estancia in estancias:
+            dispositivos = estancia.dispositivos.all()
+            vulnerabilidades_set = set()
+
+            for dispositivo in dispositivos:
+                vulnerabilidades = dispositivo.vulnerabilities.all()
+                for vuln in vulnerabilidades:
+                    vulnerabilidades_set.add(vuln.id)  # usamos el ID para evitar duplicados
+
+            resultado.append({
+                "estancia": estancia.nombreEstancia,
+                "total_vulnerabilidades": len(vulnerabilidades_set)
+            })
+
+        return Response(resultado)
 
 class MuebleListCreateView(generics.ListCreateAPIView):
     queryset = Mueble.objects.all()
@@ -413,7 +439,8 @@ class VulnerabilityValues(APIView):
         values ["vector_version"]=verctor_version
 
         return JsonResponse(values)
-    
+
+
 class DeviceWeightedAverage(APIView):
     def get(self, request, *args, **kwargs):
         model = self.kwargs["model"]
@@ -667,27 +694,4 @@ class updateObject(APIView):
 
         return Response(status=status.HTTP_200_OK)
 
-#Consulta a la API de OSV.dev
 
-@method_decorator(csrf_exempt, name='dispatch')  # Desactiva CSRF temporalmente para pruebas
-class OSVVulnerabilityView(View):
-    
-    def post(self, request, ecosystem, package_name):
-        """
-        Consulta la API de OSV.dev usando el método POST.
-        """
-        url = "https://api.osv.dev/v1/query"
-        data = {
-            "package": {
-                "name": package_name,
-                "ecosystem": ecosystem
-            }
-        }
-
-        response = requests.post(url, json=data)
-
-        if response.status_code == 200:
-            return JsonResponse(response.json())
-        else:
-            return JsonResponse({'error': 'Error al consultar OSV.dev', 'status': response.status_code}, status=response.status_code)
-    

@@ -10,68 +10,69 @@ const FurnitureForm = ({ onClose, estanciaId }) => {
     height: 100,
     rotation: 0,
     estancia: estanciaId, // ✅ El ID correcto
-});
-    const [image, setImage] = useState(null);
+  });
+  const [image, setImage] = useState(null);
 
 
 
-    const handleChange = (e) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-
-    const handleFileChange = (e) => {
-        setImage(e.target.files[0]);
-    };
-
-    const handleSubmit = (e) => {
-      e.preventDefault();
-  
-      const dataToSend = new FormData();
-  
-      Object.entries(formData).forEach(([key, value]) => {
-          if (key === "estancia") {
-              dataToSend.append("estancia", parseInt(value)); // ✅ Convertimos estancia a número
-          } else {
-              dataToSend.append(key, value);
-          }
-      });
-  
-      if (image) {
-          dataToSend.append("imagen", image); // 👈 Esto ya lo hacías bien
-      }
-  
-      // Log de prueba
-      for (let pair of dataToSend.entries()) {
-          console.log(pair[0] + ':', pair[1]);
-      }
-  
-      axios.post("http://localhost:8000/vulnet/api/v1/muebles/", dataToSend)
-          .then(response => {
-              alert("✅ Furniture created!");
-              onClose();
-          })
-          .catch(error => {
-              alert("❌ Error creating furniture.");
-              console.error("❌ Detalles:", error.response?.data || error);
-          });
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
-  
+
+  const handleFileChange = (e) => {
+    setImage(e.target.files[0]);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const dataToSend = new FormData();
+
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key === "estancia") {
+        dataToSend.append("estancia", parseInt(value)); // ✅ Convertimos estancia a número
+      } else {
+        dataToSend.append(key, value);
+      }
+    });
+
+    if (image) {
+      dataToSend.append("imagen", image); // 👈 Esto ya lo hacías bien
+    }
+
+    // Log de prueba
+    for (let pair of dataToSend.entries()) {
+      console.log(pair[0] + ':', pair[1]);
+    }
+
+    axios.post("http://localhost:8000/vulnet/api/v1/muebles/", dataToSend)
+      .then(response => {
+        alert("✅ Furniture created!");
+        window.location.reload(); // 👈 recarga la página automáticamente
+
+      })
+      .catch(error => {
+        alert("❌ Error creating furniture.");
+        console.error("❌ Detalles:", error.response?.data || error);
+      });
+  };
 
 
 
-    return (
-        <div className="form-container">
-            <h3 className="form-title">Add Furniture</h3>
-            <form onSubmit={handleSubmit} encType="multipart/form-data" className="form-content">
-                <input type="text" name="tipo" placeholder="tipo" onChange={handleChange} required className="form-input" />
-                <input type="file" accept="image/*" onChange={handleFileChange} className="form-input" />
-                <div className="form-buttons">
-                    <button type="submit" className="form-button primary">Create</button>
-                    <button type="button" onClick={onClose} className="form-button secondary">Cancel</button>
-                </div>
-            </form>
+
+  return (
+    <div className="form-container">
+      <h3 className="form-title">Add Furniture</h3>
+      <form onSubmit={handleSubmit} encType="multipart/form-data" className="form-content">
+        <input type="text" name="tipo" placeholder="tipo" onChange={handleChange} required className="form-input" />
+        <input type="file" accept="image/*" onChange={handleFileChange} className="form-input" />
+        <div className="form-buttons">
+          <button type="submit" className="form-button primary">Create</button>
+          <button type="button" onClick={onClose} className="form-button secondary">Cancel</button>
         </div>
-    );
+      </form>
+    </div>
+  );
 };
 
 

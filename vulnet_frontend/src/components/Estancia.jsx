@@ -46,7 +46,7 @@ const Estancia = () => {
         const updatedDevices = estancia.dispositivos.filter(id => id !== deviceIdToRemove);
         setEstancia({ ...estancia, dispositivos: updatedDevices });
     };
-    
+
 
 
     const handleAddDevice = (event) => {
@@ -58,7 +58,7 @@ const Estancia = () => {
             }));
         }
     };
-    
+
 
     const updateEstancia = async () => {
         try {
@@ -72,7 +72,7 @@ const Estancia = () => {
                     dispositivos: estancia.dispositivos
                 }),
             });
-    
+
             if (response.ok) {
                 alert("Los cambios han sido guardados correctamente.");
                 navigate("/Estancia");
@@ -84,7 +84,7 @@ const Estancia = () => {
             console.error(error);
         }
     };
-    
+
 
     const AñadirDispositivoEstancia = () => {
         navigate(`/estancias/${estancia.id}/dispositivos/nuevo`);
