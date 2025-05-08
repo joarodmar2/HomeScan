@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
 from vulnet_app import views
-from .views import EstanciaView,buscar_dispositivos,actualizar_posicion_mueble,MuebleRetrieveUpdateDestroyView,VulnerabilidadesPorEstancia
+from .views import EstanciaView,buscar_dispositivos,actualizar_posicion_mueble,MuebleRetrieveUpdateDestroyView,VulnerabilidadesPorEstancia,vulnerabilidades_por_estancia_y_dispositivo,ConexionesPorDispositivo
 
 router = routers.DefaultRouter()
 router.register(r"devices", views.DeviceView, "devices")
@@ -29,7 +29,8 @@ urlpatterns = [
     path('api/v1/devicesustainability/<str:model>/', views.DeviceSustainability.as_view(), name="devicesustainability"),
     path('api/v1/createconnection/', views.CreateConnection.as_view(), name="createconnection"),
     path('api/v1/updateconnection/<int:id>/', views.UpdateConnection.as_view(), name="updateconnection"),
-    
+    path('api/v1/device/<int:device_id>/conexiones/', ConexionesPorDispositivo.as_view(), name='conexiones-por-dispositivo'),
+
 
     path('api/v1/devicemodels/', views.getDeviceModels.as_view(), name="devicemodels"),
     path('api/v1/devicetypes/', views.getDeviceTypes.as_view(), name="devicetypes"),
@@ -49,7 +50,8 @@ urlpatterns = [
     #path('api/v1/vulnerabilities/<str:ecosystem>/<str:package_name>/', OSVVulnerabilityView.as_view(), name='osv_vulnerabilities'),
     path('api/v1/muebles/', views.MuebleListCreateView.as_view(), name="muebles_list_create"),
     path("api/v1/muebles/<int:pk>/", MuebleRetrieveUpdateDestroyView.as_view(), name="mueble-detail"),  # Este permite DELETE
-    
+        path('api/v1/vulnerabilidades-por-estancia-y-dispositivo/', vulnerabilidades_por_estancia_y_dispositivo),
+
     path('api/v1/muebles/estancia/<int:estancia_id>/', views.obtener_muebles_por_estancia, name='muebles_por_estancia'),
     path('api/v1/muebles/update-position/<int:mueble_id>/', views.actualizar_posicion_mueble, name='actualizar_posicion_mueble'),
 

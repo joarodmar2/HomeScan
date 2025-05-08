@@ -1,5 +1,10 @@
 {
   "dependencies": {
-    "coreapi": "^0.1.1"
+    "@chakra-ui/react": "^3.16.1",
+    "@chakra-ui/stat": "^2.1.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "coreapi": "^0.0.3",
+    "framer-motion": "^12.9.1"
   }
 }

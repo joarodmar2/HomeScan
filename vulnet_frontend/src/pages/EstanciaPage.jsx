@@ -1,244 +1,168 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import EstanciaForm from "../components/EstanciaForm";
-
-const EstanciaPage = () => {
-    const navigate = useNavigate();
-    const [Estancias, setEstancias] = useState([]);
-    const [mostrarFormulario, setMostrarFormulario] = useState(false);
-    const [dispositivos, setDispositivos] = useState([]);
-    const [conexiones, setConexiones] = useState([]);
-
-    useEffect(() => {
-        fetchEstancias();
-
-        fetch("http://localhost:8000/vulnet/api/v1/devices/")
-            .then((res) => res.json())
-            .then(setDispositivos)
-            .catch((err) => console.error("Error al cargar dispositivos:", err));
-
-        fetch("http://localhost:8000/vulnet/api/v1/connections/")
-            .then((res) => res.json())
-            .then((data) => {
-                console.log("📡 Conexiones desde API:", data);  // <--- Aquí
-                setConexiones(data);
-            });
+import React, { useState, useEffect } from 'react';
+import Estancia from '/src/components/Estancia.jsx';
+import { IconButton, useColorMode } from '@chakra-ui/react';
+import { FaMoon, FaSun } from 'react-icons/fa';
+import Header from '../components/Header'; // ajusta la ruta según dónde lo coloques
+import { Space } from 'lucide-react';
 
 
-    }, []);
+export default function EstanciaPage() {
+    const [estancias, setEstancias] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
 
+    // Chakra UI mode
+    const { colorMode, toggleColorMode } = useColorMode();
+    const modoOscuro = colorMode === 'dark';
 
-    const fetchEstancias = () => {
-        fetch("http://localhost:8000/vulnet/api/v1/Estancia/")
-            .then(response => response.json())
-            .then(data => setEstancias(Array.isArray(data) ? data : []))
-            .catch(error => console.error("Error al obtener estancias:", error));
+    const styles = {
+        container: {
+            width: '100%',
+            maxWidth: '1200px',
+            margin: '0 auto',
+            padding: '20px',
+            backgroundColor: modoOscuro ? '#121212' : '#f9f9f9',
+            minHeight: '100vh',
+            color: modoOscuro ? '#fff' : '#000',
+            transition: 'background-color 0.3s ease',
+        },
+        refreshButtonContainer: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px',
+        },
+        refreshButton: {
+            padding: '8px 16px',
+            backgroundColor: '#6366f1',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+        },
+        errorMessage: {
+            padding: '16px',
+            backgroundColor: '#ffebee',
+            color: '#c62828',
+            border: '1px solid #ffcdd2',
+            borderRadius: '4px',
+            marginBottom: '20px',
+        },
+        estanciasGrid: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: '16px',
+        },
+        cardSkeleton: {
+            border: '1px solid #333',
+            borderRadius: '8px',
+            padding: '16px',
+            backgroundColor: modoOscuro ? '#1e1e1e' : '#f0f0f0',
+        },
+        skeletonLine: {
+            height: '16px',
+            backgroundColor: modoOscuro ? '#2e2e2e' : '#ddd',
+            borderRadius: '4px',
+            marginBottom: '12px',
+            width: '80%',
+        },
+        skeletonLineShort: {
+            height: '16px',
+            backgroundColor: modoOscuro ? '#2e2e2e' : '#ddd',
+            borderRadius: '4px',
+            marginBottom: '12px',
+            width: '50%',
+        },
+        skeletonButtons: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginTop: '16px',
+        },
+        skeletonButton: {
+            height: '32px',
+            width: '80px',
+            backgroundColor: modoOscuro ? '#2e2e2e' : '#ccc',
+            borderRadius: '4px',
+        },
+        emptyMessage: {
+            padding: '24px',
+            textAlign: 'center',
+            backgroundColor: modoOscuro ? '#1e1e1e' : '#fff',
+            border: '1px solid #333',
+            borderRadius: '8px',
+            color: modoOscuro ? '#ccc' : '#666',
+        },
     };
 
-    const handleNuevaEstancia = () => {
-        fetchEstancias(); // 🔁 Vuelve a traer TODAS las estancias del backend
-        setMostrarFormulario(false);
-    };
-    //Conexiones por estancia
-    const obtenerConexiones = (deviceId) => {
-        const conexionesDispositivo = conexiones.filter(
-            (conn) => conn.first_device === deviceId || conn.second_device === deviceId
-        );
-        const tipos = [...new Set(conexionesDispositivo.map((conn) => conn.type))];
-        return tipos;
-    };
+    const fetchEstancias = async () => {
+        setIsLoading(true);
+        setError(null);
 
-
-
-    const handleDelete = async (id) => {
         try {
-            const response = await fetch(`http://localhost:8000/vulnet/api/v1/Estancia/${id}/`, {
-                method: "DELETE",
-            });
+            const response = await fetch("http://localhost:8000/vulnet/api/v1/Estancia/");
+            if (!response.ok) throw new Error(`Error: ${response.status}`);
+            const data = await response.json();
+            setEstancias(data);
+        } catch (err) {
+            console.error("Error al cargar estancias:", err);
+            setError("No se pudieron cargar las estancias. Por favor, intente nuevamente.");
 
-            if (response.ok) {
-                setEstancias(prev => prev.filter(estancia => estancia.id !== id));
-            } else {
-                console.error("Error al eliminar la estancia");
-            }
-        } catch (error) {
-            console.error("Error en la conexión:", error);
+            setEstancias(exampleEstancias);
+        } finally {
+            setIsLoading(false);
         }
     };
 
+    useEffect(() => {
+        fetchEstancias();
+    }, []);
+
+    const handleRefresh = () => {
+        fetchEstancias();
+    };
+
+    const handleDelete = (id) => {
+        setEstancias(estancias.filter((estancia) => estancia.id !== id));
+    };
+
     return (
-        <div style={styles.pageContainer}>
-            <h2 style={styles.title}>Número de estancias: {Estancias.length}</h2>
-
-            <button style={styles.createButton} onClick={() => setMostrarFormulario(true)}>
-                Crear Nueva Estancia
-            </button>
-
-            {mostrarFormulario && (
-                <EstanciaForm
-                    onClose={() => setMostrarFormulario(false)}
-                    onEstanciaCreated={handleNuevaEstancia}
-                />
-            )}
-
-            <div style={styles.grid}>
-                {Estancias
-                    .filter(estancia => estancia && estancia.nombreEstancia)
-                    .map((estancia) => (
-                        <div key={estancia.id} style={styles.card}>
-                            <h3
-                                style={styles.nombreEstancia}
-                                onClick={() => navigate(`/estancia/${encodeURIComponent(estancia.nombreEstancia)}/modelado`)}
-                            >
-                                {estancia.nombreEstancia}
-                            </h3>
-                            <ul style={{ padding: 0, listStyleType: "none" }}>
-                                {estancia.dispositivos?.length > 0 ? (
-                                    estancia.dispositivos.map((deviceId, idx) => {
-                                        // Buscar el dispositivo completo por ID
-                                        const dispositivo = dispositivos.find((d) => d.id === deviceId);
-                                        if (!dispositivo) return null;
-
-                                        // Buscar conexiones donde el dispositivo participa
-                                        const conexionesDelDispositivo = conexiones.filter(
-                                            (conn) =>
-                                                conn.first_device?.id === deviceId ||
-                                                conn.second_device?.id === deviceId
-                                        );
-
-                                        // Obtener tipos de conexión únicos
-                                        const tipos = [...new Set(conexionesDelDispositivo.map(conn => conn.type))];
-
-                                        return (
-                                            <li
-                                                key={idx}
-                                                style={{
-                                                    marginBottom: "6px",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    gap: "6px",
-                                                    fontSize: "14px",
-                                                    color: "white"
-                                                }}
-                                            >
-                                                {dispositivo.model}
-                                                {tipos.length > 0 && (
-                                                    <div style={{ display: "flex", gap: "6px" }}>
-                                                        {tipos.map((tipo, i) => (
-                                                            <img
-                                                                key={i}
-                                                                src={`http://localhost:8000/media/connections/${tipo.toLowerCase().replace(/[\s\-]/g, "")}.png`}
-                                                                alt={tipo}
-                                                                title={tipo}
-                                                                style={{ width: "18px", height: "18px" }}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                )}
-
-                                            </li>
-                                        );
-                                    })
-                                ) : (
-                                    <li style={{ fontStyle: "italic", color: "white", fontSize: "14px" }}>
-                                        No hay dispositivos
-                                    </li>
-                                )}
-                            </ul>
+        <div style={styles.container}>
+            <Header title="Estancias" />
 
 
+            {error && <div style={styles.errorMessage}>{error}</div>}
 
-
-
-
-                            <div style={styles.buttonsContainer}>
-                                <button
-                                    style={styles.editButton}
-                                    onClick={() => navigate(`/estancia/${encodeURIComponent(estancia.nombreEstancia)}`)}
-                                >
-                                    Editar
-                                </button>
-                                <button
-                                    style={styles.deleteButton}
-                                    onClick={() => handleDelete(estancia.id)}
-                                >
-                                    Eliminar
-                                </button>
+            {isLoading ? (
+                <div style={styles.estanciasGrid}>
+                    {[...Array(6)].map((_, index) => (
+                        <div key={index} style={styles.cardSkeleton}>
+                            <div style={styles.skeletonLine}></div>
+                            <div style={styles.skeletonLineShort}></div>
+                            <div style={styles.skeletonButtons}>
+                                <div style={styles.skeletonButton}></div>
+                                <div style={styles.skeletonButton}></div>
                             </div>
                         </div>
                     ))}
-            </div>
+                </div>
+            ) : estancias.length > 0 ? (
+                <div style={styles.estanciasGrid}>
+                    {estancias.map((estancia) => (
+                        <Estancia
+                            key={estancia.id}
+                            estancia={estancia}
+                            onDelete={handleDelete}
+                            modoOscuro={modoOscuro}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div style={styles.emptyMessage}>
+                    No hay estancias disponibles.
+                </div>
+            )}
         </div>
+
     );
-};
-
-const styles = {
-    pageContainer: {
-        backgroundColor: "#121212",
-        minHeight: "100vh",
-        padding: "40px",
-        color: "white",
-        textAlign: "center",
-    },
-    title: {
-        fontSize: "24px",
-        marginBottom: "20px"
-    },
-    createButton: {
-        padding: "12px 24px",
-        backgroundColor: "#6366f1",
-        color: "white",
-        border: "none",
-        borderRadius: "8px",
-        fontSize: "16px",
-        fontWeight: "bold",
-        cursor: "pointer",
-        marginBottom: "30px"
-    },
-    grid: {
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-        gap: "20px",
-        justifyContent: "center"
-    },
-    card: {
-        backgroundColor: "#1e1e1e",
-        padding: "20px",
-        borderRadius: "12px",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.3)"
-    },
-    nombreEstancia: {
-        fontSize: "20px",
-        color: "#4f46e5",
-        cursor: "pointer",
-        marginBottom: "10px"
-    },
-    subtitulo: {
-        fontSize: "14px",
-        fontStyle: "italic",
-        marginBottom: "15px"
-    },
-    buttonsContainer: {
-        display: "flex",
-        justifyContent: "space-between",
-        gap: "10px"
-    },
-    editButton: {
-        backgroundColor: "#3b82f6",
-        color: "white",
-        border: "none",
-        borderRadius: "6px",
-        padding: "6px 12px",
-        cursor: "pointer"
-    },
-    deleteButton: {
-        backgroundColor: "#ef4444",
-        color: "white",
-        border: "none",
-        borderRadius: "6px",
-        padding: "6px 12px",
-        cursor: "pointer"
-    }
-};
-
-export default EstanciaPage;
+}

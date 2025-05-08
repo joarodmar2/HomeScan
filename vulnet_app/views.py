@@ -13,13 +13,46 @@ import requests
 import json
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from collections import Counter
+from collections import Counter, defaultdict
+from django.db.models import Count
 
 ## Este archivo vale para definir las vistas de la API y eso significa que aquí se definen las operaciones GET POST PUT DELETE. Las funciones para obtener borrar modificar y eliminar cosas de la base de datos.
 
 from django.shortcuts import render
 from django.http import JsonResponse
 from .models import Estancia
+class ConexionesPorDispositivo(APIView):
+    def get(self, request, device_id):
+        try:
+            dispositivo = Device.objects.get(id=device_id)
+        except Device.DoesNotExist:
+            return Response({"error": "Dispositivo no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+        conexiones = Connection.objects.filter(
+            first_device=dispositivo
+        ) | Connection.objects.filter(
+            second_device=dispositivo
+        )
+
+        dispositivos_conectados = []
+        for conexion in conexiones:
+            if conexion.first_device == dispositivo:
+                conectado = conexion.second_device
+            else:
+                conectado = conexion.first_device
+
+            dispositivos_conectados.append({
+                "id": conectado.id,
+                "model": conectado.model,
+                "type": conectado.type,
+                "category": conectado.category,
+                "connection_type": conexion.type,
+            })
+
+        return Response({
+            "dispositivo": dispositivo.model,
+            "conexiones": dispositivos_conectados
+        }, status=status.HTTP_200_OK)
 
 class VulnerabilidadesPorEstancia(APIView):
     def get(self, request):
@@ -42,7 +75,28 @@ class VulnerabilidadesPorEstancia(APIView):
             })
 
         return Response(resultado)
+def vulnerabilidades_por_estancia_y_dispositivo(request):
+    data = []
 
+    estancias = Estancia.objects.prefetch_related('dispositivos__vulnerabilities')
+
+    for estancia in estancias:
+        dispositivos_info = []
+        for dispositivo in estancia.dispositivos.all():
+            total_vulns = dispositivo.vulnerabilities.count()
+            if total_vulns > 0:
+                dispositivos_info.append({
+                    "nombre": dispositivo.model,
+                    "vulnerabilidades": total_vulns
+                })
+
+        if dispositivos_info:
+            data.append({
+                "estancia": estancia.nombreEstancia,
+                "dispositivos": dispositivos_info
+            })
+
+    return JsonResponse(data, safe=False)
 class MuebleListCreateView(generics.ListCreateAPIView):
     queryset = Mueble.objects.all()
     serializer_class = MuebleSerializer

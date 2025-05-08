@@ -84,11 +84,11 @@ const CanvasRoom = () => {
                     ctx.strokeStyle = "gray";
                     ctx.lineWidth = 2;
                     ctx.strokeRect(item.x, item.y, item.width, item.height);
-            
+
                     // Flechas para redimensionar (esquina inferior derecha)
                     ctx.fillStyle = "white";
                     ctx.fillText("↘️", item.x + item.width, item.y + item.height - 4);
-            
+
                     // ❌ Botón para eliminar (esquina superior derecha)
                     ctx.fillStyle = "red";
                     ctx.beginPath();
@@ -100,7 +100,7 @@ const CanvasRoom = () => {
                     ctx.textBaseline = "middle";
                     ctx.fillText("X", item.x + item.width - 8, item.y + 8);
                 }
-            
+
             };
         });
     }, [bgImgObject, furniture, selectedItem, rotations, estancia]);
@@ -143,40 +143,40 @@ const CanvasRoom = () => {
 
         if (!clicked) setSelectedItem(null);
         // Si hizo clic en la cruz del mueble seleccionado
-if (selectedItem !== null) {
-    const item = furniture[selectedItem];
-    const xClick = x;
-    const yClick = y;
+        if (selectedItem !== null) {
+            const item = furniture[selectedItem];
+            const xClick = x;
+            const yClick = y;
 
-    const crossX = item.x + item.width - 8;
-    const crossY = item.y + 8;
+            const crossX = item.x + item.width - 8;
+            const crossY = item.y + 8;
 
-    const distance = Math.sqrt((xClick - crossX) ** 2 + (yClick - crossY) ** 2);
+            const distance = Math.sqrt((xClick - crossX) ** 2 + (yClick - crossY) ** 2);
 
-    if (distance <= 8) {
-        const confirmar = window.confirm("¿Eliminar este mueble?");
-        if (confirmar) {
-            // Eliminar en el backend
-            fetch(`http://localhost:8000/vulnet/api/v1/muebles/${item.id}/`, {
-                method: "DELETE"
-            })
-                .then(res => {
-                    if (res.ok) {
-                        // Eliminar del estado local
-                        setFurniture(prev => prev.filter((_, i) => i !== selectedItem));
-                        setSelectedItem(null);
-                    } else {
-                        alert("❌ Error al eliminar el mueble.");
-                    }
-                })
-                .catch(err => {
-                    console.error("Error al eliminar:", err);
-                    alert("❌ Error al eliminar el mueble.");
-                });
+            if (distance <= 8) {
+                const confirmar = window.confirm("¿Eliminar este mueble?");
+                if (confirmar) {
+                    // Eliminar en el backend
+                    fetch(`http://localhost:8000/vulnet/api/v1/muebles/${item.id}/`, {
+                        method: "DELETE"
+                    })
+                        .then(res => {
+                            if (res.ok) {
+                                // Eliminar del estado local
+                                setFurniture(prev => prev.filter((_, i) => i !== selectedItem));
+                                setSelectedItem(null);
+                            } else {
+                                alert("❌ Error al eliminar el mueble.");
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Error al eliminar:", err);
+                            alert("❌ Error al eliminar el mueble.");
+                        });
+                }
+                return; // 👉 Salir del handleMouseDown para que no se active selección ni movimiento
+            }
         }
-        return; // 👉 Salir del handleMouseDown para que no se active selección ni movimiento
-    }
-}
 
     };
 
@@ -285,8 +285,8 @@ if (selectedItem !== null) {
 
                 <canvas
                     ref={canvasRef}
-                    width={500}
-                    height={400}
+                    width={800}
+                    height={600}
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}

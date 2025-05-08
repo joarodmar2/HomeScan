@@ -1,291 +1,689 @@
-import { useEffect, useState } from "react";
-import { getNdevNvuln, getAllDevices, getNSeveritySummaryList, getNSeveritySummary, getWeightedAverage, getAverageSustainability } from "../api/devices.api";
-import BubbleChart from './react-bubble-chart-d3';
-import ReactApexChart from 'react-apexcharts';
+import { useState, useEffect } from "react";
+import BubbleChart from "../components/Charts/BubbleChart";
+import TightBubbleChart from "../components/Charts/TightBubbleChart";
+import PolicyBubbleChart from "../components/Charts/PolicyBubbleChart";
+import axios from "axios";
+import {
+  Box,
+  Flex,
+  Grid,
+  Heading,
+  Text,
+  Icon,
+  Avatar,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  IconButton,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Button,
+  Card,
+  CardHeader,
+  CardBody,
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatHelpText,
+  StatArrow,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+  useColorModeValue,
+  Drawer,
+  DrawerBody,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  useDisclosure,
+  VStack,
+  HStack,
+  Divider,
+  SimpleGrid,
+  useColorMode,
+} from "@chakra-ui/react";
+import {
+  BarChart,
+  LineChart,
+  PieChart,
+  AreaChart,
+  Bar,
+  Line,
+  Pie,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import {
+  FiBarChart2,
+  FiHome,
+  FiUsers,
+  FiPieChart,
+  FiTrendingUp,
+  FiSettings,
+  FiCreditCard,
+  FiSearch,
+  FiBell,
+  FiMenu,
+  FiDownload,
+  FiDollarSign,
+  FiActivity,
+  FiCpu,
+  FiShield,
+  FiAlertCircle,
+  FiHeart,
+} from "react-icons/fi";
+import { FaSun, FaMoon } from "react-icons/fa";
+import ReactApexChart from "react-apexcharts";
 
-export function DevicesDashboard() {
-  const [devices, setDevices] = useState([]);
-  const [devices_list, setDeviceModel] = useState([]);
-  const [vuln_list, setVuln] = useState([]);
-  const [ndevnvuln, setNdevNvuln] = useState([]);
-  const [nvuln, setNvulns] = useState([]);
-  const [ndev, setNdev] = useState([]);
-  const [severity_summary_list, setNSeveritySummaryList] = useState([]);
-  const [severity_summary, setNSeveritySummary] = useState([]);
-  const [weighted_average, setWeightedAverage] = useState([]);
-  const [average_sustainability, setAverageSustainability] = useState([]);
-  const [estanciaVulnerabilidades, setEstanciaVulnerabilidades] = useState([]);
+// Componente MiniStatistics para mostrar estadísticas pequeñas
+const MiniStatistics = ({ title, value, icon, iconColor }) => {
+  const cardBg = useColorModeValue("white", "gray.800");
+  const IconComponent = icon;
 
-  const low_per = Math.round(severity_summary["low"] / severity_summary["total"] * 100);
+  return (
+    <Box bg={cardBg} p={4} borderRadius="xl" boxShadow="sm">
+      <Flex justify="space-between" align="center">
+        <Box>
+          <Text fontSize="sm" color="gray.500">{title}</Text>
+          <Text fontSize="2xl" fontWeight="bold">{value}</Text>
+        </Box>
+        <Box p={2} bg={iconColor} borderRadius="md" opacity={0.8}>
+          <Icon as={IconComponent} boxSize={6} color="white" />
+        </Box>
+      </Flex>
+    </Box>
+  );
+};
 
-  useEffect(() => { //  Cargar los dispositivos
-    async function loadDevices() {
-      const res = await getAllDevices();
-      setDevices(res.data);
-      const values = res.data.map(device => device.model);
-      setDeviceModel(values);
-      const vulns = res.data.map(device => device.vulnerabilities);
-      setVuln(vulns);
-    }
-    loadDevices();
-  }, []);
+// Sample data for charts
+const revenueData = [
+  { name: "Ene", value: 4000 },
+  { name: "Feb", value: 3000 },
+  { name: "Mar", value: 5000 },
+  { name: "Abr", value: 2780 },
+  { name: "May", value: 1890 },
+  { name: "Jun", value: 2390 },
+  { name: "Jul", value: 3490 },
+  { name: "Ago", value: 4000 },
+  { name: "Sep", value: 4500 },
+  { name: "Oct", value: 5200 },
+  { name: "Nov", value: 4800 },
+  { name: "Dic", value: 6000 },
+];
+const data = [
+  { x: 1, y: 1, value: 10, color: "#E53E3E" },
+  { x: 2, y: 1, value: 20, color: "#3182CE" },
+  { x: 3, y: 1, value: 30, color: "#38A169" },
+  { x: 4, y: 1, value: 40, color: "#D69E2E" },
+];
 
-  useEffect(() => { //cargar promedio ponderado
-    async function loadWeightedAverage() {
-      const res = await getWeightedAverage();
-      setWeightedAverage(res.data);
-    }
-    loadWeightedAverage();
-  }, []);
+const usersData = [
+  { name: "Ene", nuevos: 400, activos: 240 },
+  { name: "Feb", nuevos: 300, activos: 139 },
+  { name: "Mar", nuevos: 200, activos: 980 },
+  { name: "Abr", nuevos: 278, activos: 390 },
+  { name: "May", nuevos: 189, activos: 480 },
+  { name: "Jun", nuevos: 239, activos: 380 },
+  { name: "Jul", nuevos: 349, activos: 430 },
+];
 
-  useEffect(() => { //Cargar la sostenibilidad promedio
-    async function loadAverageSustainability() {
-      const res = await getAverageSustainability();
-      setAverageSustainability(res.data["AverageSustainability"]);
-    }
-    loadAverageSustainability();
-  }, []);
 
-  useEffect(() => { //cargar el número de dispositivos y vulnerabilidades
-    async function loadNDevicesNvuln() {
-      const res = await getNdevNvuln();
-      setNdevNvuln(res.data);
-      setNvulns(res.data["nvuln"]);
-      setNdev(res.data["ndev"]);
-    }
-    loadNDevicesNvuln();
-  }, []);
 
-  useEffect(() => {//Cargar la lista de resúmenes de severidad
-    async function loadNSeveritySummaryList() {
-      const res = await getNSeveritySummaryList();
-      setNSeveritySummaryList(res.data);
-    }
-    loadNSeveritySummaryList();
-  }, []);
 
-  useEffect(() => { //Cargar el resumen de severidad
-    async function loadNSeveritySummary() {
-      const res = await getNSeveritySummary();
-      setNSeveritySummary(res.data);
-    }
-    loadNSeveritySummary();
-  }, []);
+
+
+const trafficData = [
+  { name: "Ene", directo: 400, orgánico: 240, referido: 140 },
+  { name: "Feb", directo: 300, orgánico: 198, referido: 220 },
+  { name: "Mar", directo: 200, orgánico: 980, referido: 350 },
+  { name: "Abr", directo: 278, orgánico: 390, referido: 430 },
+  { name: "May", directo: 189, orgánico: 480, referido: 380 },
+  { name: "Jun", directo: 239, orgánico: 380, referido: 290 },
+  { name: "Jul", directo: 349, orgánico: 430, referido: 340 },
+];
+// Datos de ejemplo para el gráfico de burbujas
+const mockEstanciaVulnerabilidades = [
+  { estancia: "Sala de estar", total_vulnerabilidades: 15 },
+  { estancia: "Cocina", total_vulnerabilidades: 7 },
+  { estancia: "Dormitorio", total_vulnerabilidades: 10 },
+  { estancia: "Oficina", total_vulnerabilidades: 23 },
+  { estancia: "Baño", total_vulnerabilidades: 5 }
+];
+
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+
+// Datos de ejemplo para el gráfico de barras apiladas (simulando la respuesta de la API)
+const mockStackedData = [
+  {
+    estancia: "Sala de estar",
+    dispositivos: [
+      { nombre: "Smart TV", vulnerabilidades: 5 },
+      { nombre: "Altavoz inteligente", vulnerabilidades: 3 },
+      { nombre: "Router WiFi", vulnerabilidades: 7 }
+    ]
+  },
+  {
+    estancia: "Cocina",
+    dispositivos: [
+      { nombre: "Nevera inteligente", vulnerabilidades: 2 },
+      { nombre: "Altavoz inteligente", vulnerabilidades: 1 },
+      { nombre: "Router WiFi", vulnerabilidades: 4 }
+    ]
+  },
+  {
+    estancia: "Dormitorio",
+    dispositivos: [
+      { nombre: "Smart TV", vulnerabilidades: 3 },
+      { nombre: "Altavoz inteligente", vulnerabilidades: 2 },
+      { nombre: "Router WiFi", vulnerabilidades: 5 }
+    ]
+  },
+  {
+    estancia: "Oficina",
+    dispositivos: [
+      { nombre: "Ordenador", vulnerabilidades: 8 },
+      { nombre: "Impresora", vulnerabilidades: 6 },
+      { nombre: "Router WiFi", vulnerabilidades: 9 }
+    ]
+  }
+];
+
+// Datos de ejemplo para las estadísticas
+const mockStats = {
+  ndev: 12,
+  nvuln: 8,
+  total_vulnerabilidades: 55,
+  weighted_average: 3.7,
+  average_sustainability: 6.8
+};
+
+// Datos de ejemplo para el gráfico de donut
+const mockSeveritySummary = {
+  none: 10,
+  low: 20,
+  medium: 15,
+  high: 8,
+  critical: 2,
+  total: 55
+};
+
+
+export default function Dashboard() {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { colorMode, toggleColorMode } = useColorMode();
+  const bgColor = useColorModeValue("gray.50", "gray.900");
+  const cardBg = useColorModeValue("white", "gray.800");
+  const legendTextColor = useColorModeValue('#2D3748', '#FFFFFF');
+  const [salesData, setSalesData] = useState([]);
 
   useEffect(() => {
-    async function loadEstanciasVulnerabilidades() {
-      try {
-        const res = await fetch("http://localhost:8000/vulnet/api/v1/vulnerabilidades-por-estancia/");
-        const data = await res.json();
-        setEstanciaVulnerabilidades(data);
-      } catch (error) {
-        console.error("Error al cargar vulnerabilidades por estancia:", error);
-      }
-    }
-    loadEstanciasVulnerabilidades();
+    axios.get("http://localhost:8000/vulnet/api/v1/nseveritysummary/")
+      .then((response) => {
+        const data = response.data;
+        const pieData = [
+          { name: "Baja", value: data.low },
+          { name: "Media", value: data.medium },
+          { name: "Alta", value: data.high },
+          { name: "Crítica", value: data.critical },
+        ];
+        setSalesData(pieData);
+      })
+      .catch((error) => {
+        console.error("Error fetching severity summary:", error);
+      });
   }, []);
 
 
 
-  const bubbleClick = (label) => {
-    console.log("Custom bubble click func")
-  }
 
-  const legendClick = (label) => {
-    console.log("Customer legend click func")
-  }
+  // Estado para los datos del gráfico de burbujas
+  const [estanciaVulnerabilidades, setEstanciaVulnerabilidades] = useState(mockEstanciaVulnerabilidades);
 
+  // Estado para los datos del gráfico de barras apiladas
+  const [stackedData, setStackedData] = useState([]);
+  useEffect(() => {
+    async function loadStackedData() {
+      try {
+        const res = await fetch("http://localhost:8000/vulnet/api/v1/vulnerabilidades-por-estancia-y-dispositivo/");
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setStackedData(data);
+        } else {
+          console.error("Formato inesperado de stacked data:", data);
+        }
+      } catch (error) {
+        console.error("Error al cargar stacked data:", error);
+      }
+    }
+    loadStackedData();
+  }, []);
+
+  // Procesamiento de datos para el gráfico de barras apiladas
+  const categories = stackedData.map(item => item.estancia);
+  const dispositivosUnicos = [
+    ...new Set(
+      stackedData.flatMap(estancia => estancia.dispositivos.map(d => d.nombre))
+    )
+  ];
+  // Procesamiento de datos para el gráfico de burbujas
   const data_array = estanciaVulnerabilidades.map(estancia => {
     const size = estancia.total_vulnerabilidades;
+    let color = size >= 15 ? "#e11d48" : size >= 8 ? "#f97316" : "#facc15";
     return {
       label: estancia.estancia,
       value: size,
       size: size * 10,
-      color: getRandomColor()
+      color: color
     };
   });
 
-  const totalEstancias = estanciaVulnerabilidades.length;
+  const stackedSeries = dispositivosUnicos.map(nombreDispositivo => ({
+    name: nombreDispositivo,
+    data: stackedData.map(estancia => {
+      const dispositivo = estancia.dispositivos.find(d => d.nombre === nombreDispositivo);
+      return dispositivo ? dispositivo.vulnerabilidades : 0;
+    })
+  }));
 
-  function getRandomColor() {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  }
+  // Datos para el gráfico de donut
+  const pieChartSeries = salesData.map(item => item.value);
+  const pieChartLabels = salesData.map(item => item.name);
 
+  const COLORS = ['#A0AEC0', '#63B3ED', '#F6AD55', '#FC8181', '#E53E3E']; // none, low, medium, high, critical
 
-  // Ahora definimos el objeto data correctamente
-  const data = {
-    series: [{
-      name: 'NONE',
-      data: severity_summary_list["none"] || [0] // Asegúrate de que no sea NaN
-    }, {
-      name: 'LOW',
-      data: severity_summary_list["low"] || [0] // Asegúrate de que no sea NaN
-    }, {
-      name: 'MEDIUM',
-      data: severity_summary_list["medium"] || [0] // Asegúrate de que no sea NaN
-    }, {
-      name: 'HIGH',
-      data: severity_summary_list["high"] || [0] // Asegúrate de que no sea NaN
-    }, {
-      name: 'CRITICAL',
-      data: severity_summary_list["critical"] || [0] // Asegúrate de que no sea NaN
-    }],
-    options: {
-      chart: {
-        background: '#202020',
-        foreColor: '#fff',
-        type: 'bar',
-        height: 350,
-        stacked: true,
-      },
-      plotOptions: {
-        bar: {
-          horizontal: true,
-          dataLabels: {
-            total: {
-              enabled: true,
-              offsetX: 0,
-              style: {
-                fontSize: '13px',
-                fontWeight: 900,
-                color: "#fff"
-              }
-            }
-          }
-        },
-      },
-      stroke: {
-        width: 1,
-        colors: ['#000']
-      },
-      title: {
-        text: 'Vulnerabilities Severity'
-      },
-      xaxis: {
-        categories: devices_list,
-        labels: {
-          formatter: function (val) {
-            return val
-          }
-        }
-      },
-      yaxis: {
-        title: {
-          text: undefined
-        },
-      },
-      tooltip: {
-        y: {
-          formatter: function (val) {
-            return val
-          }
-        }
-      },
-      fill: {
-        opacity: 1
-      },
-      legend: {
-        position: 'top',
-        horizontalAlign: 'left',
-        offsetX: 40
-      },
-      theme: {
-        mode: 'dark',
-        palette: 'palette1',
-      }
-    }
-  };
+  // Efecto para cargar datos reales (simulado con setTimeout)
+  useEffect(() => {
+    // Aquí podrías hacer tus llamadas a API reales
+    // Por ahora usamos los datos de ejemplo
+    const timer = setTimeout(() => {
+      console.log("Datos cargados (simulado)");
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <>
-      <div className="chart-row">
-        <div className="chart-container-wrapper">
-          <div className="chart-container">
-            <div className="chart-info-wrapper">
-              <h2> Dispositivos</h2>
-              <span>{ndev}</span>
-            </div>
-          </div>
-        </div>
-        <div className="chart-container-wrapper">
-          <div className="chart-container-2">
-            <div className="chart-info-wrapper">
-              <h2>Dispositivos Vulnerables</h2>
-              <span>{nvuln}</span>
-            </div>
-          </div>
-        </div>
-        <div className="chart-container-wrapper">
-          <div className="chart-container-3">
-            <div className="chart-info-wrapper">
-              <h2>Total Vulnerabilidades</h2>
-              <span>{severity_summary["total"]}</span>
-            </div>
-          </div>
-        </div>
-        <div className="chart-container-wrapper">
-          <div className="chart-container-4">
-            <div className="chart-info-wrapper">
-              <h2>Average</h2>
-              <span>{Math.round(weighted_average.WeightedAverage * 100) / 100}</span>
-            </div>
-          </div>
-        </div>
-        <div className="chart-container-wrapper">
-          <div className="chart-container-5">
-            <div className="chart-info-wrapper">
-              <h2>Total de estancias: </h2>
-              <span>{totalEstancias}</span>
-            </div>
-          </div>
-        </div>
+    <Box minH="100vh" bg={bgColor}>
 
-      </div>
+      <Drawer
+        isOpen={isOpen}
+        placement="left"
+        onClose={onClose}
+        returnFocusOnClose={false}
+        onOverlayClick={onClose}
+        size="full"
+      >
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader>DataViz</DrawerHeader>
+        </DrawerContent>
+      </Drawer>
 
-      <div className="chart">
-        <ReactApexChart options={data.options} series={data.series} type="bar" height={500} width={1000} />
-      </div>
-      <div className="estancia-vuln-list text-white p-4">
-        <h2 className="text-xl font-bold mb-2">Vulnerabilidades por estancia</h2>
-        <ul>
-          {estanciaVulnerabilidades.map((item, index) => (
-            <li key={index}>
-              <strong>{item.estancia}</strong>: {item.total_vulnerabilidades} vulnerabilidades
-            </li>
-          ))}
-        </ul>
-      </div>
+      {/* Header */}
+      <Flex
+        ml={{ base: 0, md: 60 }}
+        px={4}
+        height="20"
+        alignItems="center"
+        bg={cardBg}
+        borderBottomWidth="1px"
+        borderBottomColor={useColorModeValue("gray.200", "gray.700")}
+        justifyContent="space-between"
+      >
+        <IconButton
+          display={{ base: "flex", md: "none" }}
+          onClick={onOpen}
+          variant="outline"
+          aria-label="open menu"
+          icon={<FiMenu />}
+        />
 
-      <BubbleChart
-        graph={{
-          zoom: 1,
-          offsetX: 0.00,
-          offsetY: 0.00
-        }}
-        width={570}
-        height={570}
-        padding={0}
-        showLegend={false}
-        valueFont={{
-          family: 'Arial',
-          size: 12,
-          color: '#fff',
-          weight: 'bold',
-        }}
-        labelFont={{
-          family: 'Arial',
-          size: 16,
-          color: '#fff',
-          weight: 'bold',
-        }}
-        bubbleClickFunc={bubbleClick}
-        legendClickFun={legendClick}
-        data={data_array} />
-    </>
+        <Heading size="lg" fontWeight="semibold">
+          Dashboard
+        </Heading>
+
+        <HStack spacing={4}>
+          <InputGroup w={{ base: "auto", md: "300px" }}>
+            <InputLeftElement pointerEvents="none">
+              <Icon as={FiSearch} color="gray.400" />
+            </InputLeftElement>
+            <Input type="text" placeholder="Buscar..." />
+          </InputGroup>
+
+          <IconButton aria-label="Notificaciones" icon={<FiBell />} variant="ghost" />
+
+          <IconButton
+            aria-label="Alternar modo claro/oscuro"
+            icon={colorMode === 'light' ? <FaMoon /> : <FaSun />}
+            onClick={toggleColorMode}
+            variant="ghost"
+            size="md"
+          />
+
+          <Menu>
+            <MenuButton as={Button} rounded="full" variant="link" cursor="pointer" minW={0}>
+              <Avatar size="sm" name="Usuario" />
+            </MenuButton>
+            <MenuList>
+              <MenuItem>Perfil</MenuItem>
+              <MenuItem>Configuración</MenuItem>
+              <MenuItem>Cerrar Sesión</MenuItem>
+            </MenuList>
+          </Menu>
+        </HStack>
+      </Flex>
+
+      {/* Main Content */}
+      <Box ml={{ base: 0, md: 60 }} p={4}>
+        <Tabs colorScheme="blue" mb={6}>
+          <TabList>
+            <Tab>Resumen</Tab>
+            <Tab>Dispositivos</Tab>
+            <Tab>Análisis</Tab>
+            <Tab>Reportes</Tab>
+          </TabList>
+
+          <TabPanels>
+            <TabPanel px={0}>
+              {/* Stats Cards */}
+              {/* Mini Statistics */}
+              <SimpleGrid columns={{ base: 1, md: 2, lg: 5 }} spacing={4} mb={8}>
+                <MiniStatistics title="Dispositivos" value={mockStats.ndev} icon={FiCpu} iconColor="blue.400" />
+                <MiniStatistics title="Dispositivos Vulnerables" value={mockStats.nvuln} icon={FiShield} iconColor="red.400" />
+                <MiniStatistics title="Vulnerabilidades Totales" value={mockStats.total_vulnerabilidades} icon={FiAlertCircle} iconColor="orange.400" />
+                <MiniStatistics title="Promedio Ponderado" value={mockStats.weighted_average} icon={FiActivity} iconColor="purple.400" />
+                <MiniStatistics title="Sostenibilidad Media" value={mockStats.average_sustainability} icon={FiHeart} iconColor="green.400" />
+              </SimpleGrid>
+
+              <Grid templateColumns={{ base: "1fr", lg: "4fr 3fr" }} gap={6} mb={6}>
+                <Card>
+                  <CardHeader>
+                    <Heading size="md">Vulnerabilidades por Estancia</Heading>
+                    <Text fontSize="xl" fontWeight="semibold" mb={4} color="gray.600">
+                      Vulnerabilidades por Dispositivo en cada Estancia
+                    </Text>
+                  </CardHeader>
+                  <CardBody>
+                    <Box bg={cardBg} p={6} borderRadius="xl" boxShadow="md">
+
+                      <Flex justify="center" align="center" height="100%">
+                        <ReactApexChart
+                          options={{
+                            chart: {
+                              type: 'bar',
+                              stacked: true,
+                              background: 'transparent',
+                              toolbar: { show: false }
+                            },
+                            xaxis: {
+                              categories: categories,
+                              labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } }
+                            },
+                            yaxis: {
+                              title: {
+                                text: 'Vulnerabilidades por Dispositivo',
+                                style: { color: useColorModeValue('#2D3748', '#FFFFFF') }
+                              },
+                              labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } }
+                            },
+                            legend: {
+                              position: 'bottom',
+                              labels: { colors: [useColorModeValue('#2D3748', '#FFFFFF')] }
+                            },
+                            tooltip: {
+                              shared: false,
+                              intersect: true,
+                              y: {
+                                formatter: function (val) {
+                                  return `${val} vulnerabilidades`;
+                                }
+                              }
+                            },
+                            theme: { mode: colorMode }
+                          }}
+                          series={stackedSeries}
+                          type="bar"
+                          height={350}
+                        />
+                      </Flex>
+                    </Box>
+                  </CardBody>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <Heading size="md">Tipos de Vulnerabilidades</Heading>
+                    <Text color="gray.500" fontSize="sm">
+                      Distribución de vulnerabilidades por severidad en la casa
+                    </Text>
+                  </CardHeader>
+                  <CardBody>
+
+                    <Box h="300px">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart width={400} height={400}>
+                          <Pie
+                            data={salesData}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={120}
+                            label
+                          >
+                            {salesData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                          <Legend verticalAlign="bottom" height={36} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  </CardBody>
+                </Card>
+
+
+
+              </Grid>
+
+              <Grid templateColumns={{ base: "1fr", lg: "3fr 4fr" }} gap={6}>
+                <Card>
+                  <CardHeader>
+                    <Heading size="md">Usuarios Activos vs Nuevos</Heading>
+                    <Text color="gray.500" fontSize="sm">
+                      Comparación mensual
+                    </Text>
+                  </CardHeader>
+                  <CardBody>
+                    <Box h="300px">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={usersData}
+                          margin={{
+                            top: 5,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="nuevos" fill="#805AD5" />
+                          <Bar dataKey="activos" fill="#3182CE" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  </CardBody>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <Heading size="md">Fuentes de Tráfico</Heading>
+                    <Text color="gray.500" fontSize="sm">
+                      Distribución de tráfico por canal
+                    </Text>
+                  </CardHeader>
+                  <CardBody>
+                    <Box h="300px">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={trafficData}
+                          margin={{
+                            top: 5,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Line type="monotone" dataKey="directo" stroke="#3182CE" activeDot={{ r: 8 }} />
+                          <Line type="monotone" dataKey="orgánico" stroke="#805AD5" />
+                          <Line type="monotone" dataKey="referido" stroke="#FFBB28" />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </Box>
+                  </CardBody>
+                </Card>
+              </Grid>
+            </TabPanel>
+
+            {/* Pestaña de Dispositivos - Aquí integramos el contenido del archivo compartido */}
+            <TabPanel px={0}>
+              <Text fontSize="2xl" fontWeight="bold" mb={6}>
+                Dispositivos y Vulnerabilidades
+              </Text>
+              {/* Bubble Chart */}
+              <Box
+                bg={cardBg}
+                p={6}
+                borderRadius="xl"
+                boxShadow="md"
+                overflow="hidden"
+                mb={8}
+                maxW="800px"
+              >
+                <Text fontSize="xl" fontWeight="semibold" mb={4} color="gray.600">
+                  Vulnerabilidades por Estancia
+                </Text>
+
+                <Flex justify="center" align="center">
+                  <TightBubbleChart data={data} width={400} height={400} />
+                </Flex>
+              </Box>
+
+
+
+              {/* Donut Chart + Stacked Bar Chart */}
+              <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={8} mb={10}>
+                <Box bg={cardBg} p={6} borderRadius="xl" boxShadow="md">
+                  <Text fontSize="xl" fontWeight="semibold" mb={4} color="gray.600">
+                    Resumen de Severidad
+                  </Text>
+                  <Flex justify="center" align="center" height="100%">
+                    <ReactApexChart
+                      options={{
+                        chart: { type: 'donut', background: 'transparent' },
+                        labels: pieChartLabels,
+                        theme: { mode: colorMode },
+                        legend: {
+                          position: 'bottom',
+                          labels: { colors: [legendTextColor] }
+                        },
+                        tooltip: {
+                          y: { formatter: val => `${val} vulnerabilidades` }
+                        },
+                        plotOptions: {
+                          pie: { donut: { size: '70%' } }
+                        }
+                      }}
+                      series={pieChartSeries}
+                      type="donut"
+                      width={350}
+                    />
+                  </Flex>
+                </Box>
+
+                <Box bg={cardBg} p={6} borderRadius="xl" boxShadow="md">
+                  <Text fontSize="xl" fontWeight="semibold" mb={4} color="gray.600">
+                    Vulnerabilidades por Dispositivo en cada Estancia
+                  </Text>
+                  <Flex justify="center" align="center" height="100%">
+                    <ReactApexChart
+                      options={{
+                        chart: {
+                          type: 'bar',
+                          stacked: true,
+                          background: 'transparent',
+                          toolbar: { show: false }
+                        },
+                        xaxis: {
+                          categories: categories,
+                          labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } }
+                        },
+                        yaxis: {
+                          title: {
+                            text: 'Vulnerabilidades por Dispositivo',
+                            style: { color: useColorModeValue('#2D3748', '#FFFFFF') }
+                          },
+                          labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } }
+                        },
+                        legend: {
+                          position: 'bottom',
+                          labels: { colors: [useColorModeValue('#2D3748', '#FFFFFF')] }
+                        },
+                        tooltip: {
+                          shared: false,
+                          intersect: true,
+                          y: {
+                            formatter: function (val) {
+                              return `${val} vulnerabilidades`;
+                            }
+                          }
+                        },
+                        theme: { mode: colorMode }
+                      }}
+                      series={stackedSeries}
+                      type="bar"
+                      height={350}
+                    />
+                  </Flex>
+                </Box>
+              </SimpleGrid>
+            </TabPanel>
+
+            <TabPanel>
+              <Box p={4} bg={cardBg} borderRadius="lg">
+                <Text>Contenido de Análisis (en desarrollo)</Text>
+              </Box>
+            </TabPanel>
+
+            <TabPanel>
+              <Box p={4} bg={cardBg} borderRadius="lg">
+                <Text>Contenido de Reportes (en desarrollo)</Text>
+              </Box>
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
+      </Box>
+    </Box>
   );
 }
