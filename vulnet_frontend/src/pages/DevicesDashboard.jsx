@@ -45,6 +45,7 @@ import {
   HStack,
   Divider,
   SimpleGrid,
+  Select,
   useColorMode,
 } from "@chakra-ui/react";
 import {
@@ -63,7 +64,13 @@ import {
   Legend,
   ResponsiveContainer,
   Cell,
+  ScatterChart,
+  Scatter,
+  Layer,
+  LabelList,
 } from "recharts";
+import { hierarchy, pack } from "d3-hierarchy";
+import { scaleLinear } from "d3-scale";
 import {
   FiBarChart2,
   FiHome,
@@ -90,6 +97,18 @@ import ReactApexChart from "react-apexcharts";
 const MiniStatistics = ({ title, value, icon, iconColor }) => {
   const cardBg = useColorModeValue("white", "gray.800");
   const IconComponent = icon;
+
+  // Custom tooltip to show vulnerabilities count
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      return (
+        <Box bg={cardBg} p={2} borderRadius="md" boxShadow="md">
+          <Text>{`Vulnerabilidades : ${payload[0].payload.value}`}</Text>
+        </Box>
+      );
+    }
+    return null;
+  };
 
   return (
     <Box bg={cardBg} p={4} borderRadius="xl" boxShadow="sm">
@@ -151,14 +170,6 @@ const trafficData = [
   { name: "May", directo: 189, orgánico: 480, referido: 380 },
   { name: "Jun", directo: 239, orgánico: 380, referido: 290 },
   { name: "Jul", directo: 349, orgánico: 430, referido: 340 },
-];
-// Datos de ejemplo para el gráfico de burbujas
-const mockEstanciaVulnerabilidades = [
-  { estancia: "Sala de estar", total_vulnerabilidades: 15 },
-  { estancia: "Cocina", total_vulnerabilidades: 7 },
-  { estancia: "Dormitorio", total_vulnerabilidades: 10 },
-  { estancia: "Oficina", total_vulnerabilidades: 23 },
-  { estancia: "Baño", total_vulnerabilidades: 5 }
 ];
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
@@ -227,6 +238,9 @@ export default function Dashboard() {
   const legendTextColor = useColorModeValue('#2D3748', '#FFFFFF');
   const [salesData, setSalesData] = useState([]);
 
+  // Selector para elegir tipo de gráfico en Resumen
+  const [selectedChart, setSelectedChart] = useState("bubble");
+
   useEffect(() => {
     axios.get("http://localhost:8000/vulnet/api/v1/nseveritysummary/")
       .then((response) => {
@@ -247,8 +261,6 @@ export default function Dashboard() {
 
 
 
-  // Estado para los datos del gráfico de burbujas
-  const [estanciaVulnerabilidades, setEstanciaVulnerabilidades] = useState(mockEstanciaVulnerabilidades);
 
   // Estado para los datos del gráfico de barras apiladas
   const [stackedData, setStackedData] = useState([]);
@@ -276,17 +288,43 @@ export default function Dashboard() {
       stackedData.flatMap(estancia => estancia.dispositivos.map(d => d.nombre))
     )
   ];
-  // Procesamiento de datos para el gráfico de burbujas
-  const data_array = estanciaVulnerabilidades.map(estancia => {
-    const size = estancia.total_vulnerabilidades;
-    let color = size >= 15 ? "#e11d48" : size >= 8 ? "#f97316" : "#facc15";
-    return {
-      label: estancia.estancia,
-      value: size,
-      size: size * 10,
-      color: color
-    };
-  });
+  // Derivar vulnerabilidades totales por estancia y ordenar por nombre
+  const estanciaVulnerabilidades = stackedData
+    .map(item => ({
+      estancia: item.estancia,
+      total_vulnerabilidades: item.dispositivos.reduce((sum, d) => sum + d.vulnerabilidades, 0),
+    }))
+    .sort((a, b) => a.estancia.localeCompare(b.estancia));
+  // Create a color scale from yellow (few vulnerabilities) to red (many)
+  const data_array = estanciaVulnerabilidades.map(estancia => ({
+    label: estancia.estancia,
+    value: estancia.total_vulnerabilidades,
+  }));
+
+  const colorScale = scaleLinear()
+    .domain([
+      Math.min(...data_array.map(d => d.value)),
+      Math.max(...data_array.map(d => d.value))
+    ])
+    .range(["#FACC15", "#E11D48"]);
+
+  // Prepare non-overlapping bubble positions via D3 pack layout
+  const packSize = { width: 600, height: 600 };
+  const root = hierarchy({ children: data_array })
+    .sum(d => d.value);
+
+  const packed = pack()
+    .size([packSize.width, packSize.height])
+    .padding(0)(root);
+
+  const dataSolar = packed.leaves().map(node => ({
+    x: node.x - packSize.width / 2,
+    y: node.y - packSize.height / 2,
+    size: node.r,
+    value: node.data.value,
+    label: node.data.label,
+    fill: colorScale(node.data.value),
+  }));
 
   const stackedSeries = dispositivosUnicos.map(nombreDispositivo => ({
     name: nombreDispositivo,
@@ -312,6 +350,18 @@ export default function Dashboard() {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Custom tooltip to show vulnerabilities count in bubble charts
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      return (
+        <Box bg={cardBg} p={2} borderRadius="md" boxShadow="md">
+          <Text>{`Vulnerabilidades : ${payload[0].payload.value}`}</Text>
+        </Box>
+      );
+    }
+    return null;
+  };
 
   return (
     <Box minH="100vh" bg={bgColor}>
@@ -355,14 +405,6 @@ export default function Dashboard() {
         </Heading>
 
         <HStack spacing={4}>
-          <InputGroup w={{ base: "auto", md: "300px" }}>
-            <InputLeftElement pointerEvents="none">
-              <Icon as={FiSearch} color="gray.400" />
-            </InputLeftElement>
-            <Input type="text" placeholder="Buscar..." />
-          </InputGroup>
-
-          <IconButton aria-label="Notificaciones" icon={<FiBell />} variant="ghost" />
 
           <IconButton
             aria-label="Alternar modo claro/oscuro"
@@ -372,28 +414,13 @@ export default function Dashboard() {
             size="md"
           />
 
-          <Menu>
-            <MenuButton as={Button} rounded="full" variant="link" cursor="pointer" minW={0}>
-              <Avatar size="sm" name="Usuario" />
-            </MenuButton>
-            <MenuList>
-              <MenuItem>Perfil</MenuItem>
-              <MenuItem>Configuración</MenuItem>
-              <MenuItem>Cerrar Sesión</MenuItem>
-            </MenuList>
-          </Menu>
+
         </HStack>
       </Flex>
 
       {/* Main Content */}
       <Box ml={{ base: 0, md: 60 }} p={4}>
         <Tabs colorScheme="blue" mb={6}>
-          <TabList>
-            <Tab>Resumen</Tab>
-            <Tab>Dispositivos</Tab>
-            <Tab>Análisis</Tab>
-            <Tab>Reportes</Tab>
-          </TabList>
 
           <TabPanels>
             <TabPanel px={0}>
@@ -407,280 +434,122 @@ export default function Dashboard() {
                 <MiniStatistics title="Sostenibilidad Media" value={mockStats.average_sustainability} icon={FiHeart} iconColor="green.400" />
               </SimpleGrid>
 
-              <Grid templateColumns={{ base: "1fr", lg: "4fr 3fr" }} gap={6} mb={6}>
-                <Card>
+              {/* Selector de tipo de gráfico */}
+              <HStack spacing={4} mb={4}>
+                <Button
+                  colorScheme={selectedChart === "bar" ? "blue" : "gray"}
+                  onClick={() => setSelectedChart("bar")}
+                >
+                  Barras
+                </Button>
+                <Button
+                  colorScheme={selectedChart === "donut" ? "blue" : "gray"}
+                  onClick={() => setSelectedChart("donut")}
+                >
+                  Donut
+                </Button>
+                <Button
+                  colorScheme={selectedChart === "bubble" ? "blue" : "gray"}
+                  onClick={() => setSelectedChart("bubble")}
+                >
+                  Burbuja
+                </Button>
+              </HStack>
+
+              {/* Gráfico seleccionado */}
+              {selectedChart === "bar" && (
+                <Card mb={6}>
                   <CardHeader>
                     <Heading size="md">Vulnerabilidades por Estancia</Heading>
-                    <Text fontSize="xl" fontWeight="semibold" mb={4} color="gray.600">
-                      Vulnerabilidades por Dispositivo en cada Estancia
+                    <Text fontSize="sm" color="gray.500">
+                      Dispositivos vulnerables por estancia
                     </Text>
                   </CardHeader>
                   <CardBody>
-                    <Box bg={cardBg} p={6} borderRadius="xl" boxShadow="md">
-
-                      <Flex justify="center" align="center" height="100%">
+                    <Box bg={cardBg} p={4} borderRadius="xl" boxShadow="md" h="700px">
+                      <ResponsiveContainer width="100%" height="100%">
                         <ReactApexChart
                           options={{
-                            chart: {
-                              type: 'bar',
-                              stacked: true,
-                              background: 'transparent',
-                              toolbar: { show: false }
-                            },
-                            xaxis: {
-                              categories: categories,
-                              labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } }
-                            },
-                            yaxis: {
-                              title: {
-                                text: 'Vulnerabilidades por Dispositivo',
-                                style: { color: useColorModeValue('#2D3748', '#FFFFFF') }
-                              },
-                              labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } }
-                            },
-                            legend: {
-                              position: 'bottom',
-                              labels: { colors: [useColorModeValue('#2D3748', '#FFFFFF')] }
-                            },
-                            tooltip: {
-                              shared: false,
-                              intersect: true,
-                              y: {
-                                formatter: function (val) {
-                                  return `${val} vulnerabilidades`;
-                                }
-                              }
-                            },
+                            chart: { type: 'bar', stacked: true, background: 'transparent', toolbar: { show: false } },
+                            xaxis: { categories, labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } } },
+                            yaxis: { title: { text: 'Vulnerabilidades' }, labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } } },
+                            legend: { position: 'bottom', labels: { colors: [useColorModeValue('#2D3748', '#FFFFFF')] } },
+                            tooltip: { y: { formatter: v => `${v} vulnerabilidades` } },
                             theme: { mode: colorMode }
                           }}
                           series={stackedSeries}
                           type="bar"
-                          height={350}
+                          height={700}
                         />
-                      </Flex>
+                      </ResponsiveContainer>
                     </Box>
                   </CardBody>
                 </Card>
-                <Card>
+              )}
+
+              {selectedChart === "donut" && (
+                <Card mb={6}>
                   <CardHeader>
                     <Heading size="md">Tipos de Vulnerabilidades</Heading>
-                    <Text color="gray.500" fontSize="sm">
-                      Distribución de vulnerabilidades por severidad en la casa
+                    <Text fontSize="sm" color="gray.500">
+                      Severidad de vulnerabilidades
                     </Text>
                   </CardHeader>
                   <CardBody>
-
-                    <Box h="300px">
+                    <Box bg={cardBg} p={4} borderRadius="xl" boxShadow="md" h="700px" display="flex" alignItems="center" justifyContent="center">
                       <ResponsiveContainer width="100%" height="100%">
-                        <PieChart width={400} height={400}>
-                          <Pie
-                            data={salesData}
-                            dataKey="value"
-                            nameKey="name"
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={120}
-                            label
-                          >
+                        <PieChart>
+                          <Pie data={salesData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={150} label>
                             {salesData.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                           </Pie>
                           <Tooltip />
-                          <Legend verticalAlign="bottom" height={36} />
+                          <Legend verticalAlign="bottom" height={24} />
                         </PieChart>
                       </ResponsiveContainer>
                     </Box>
                   </CardBody>
                 </Card>
+              )}
 
-
-
-              </Grid>
-
-              <Grid templateColumns={{ base: "1fr", lg: "3fr 4fr" }} gap={6}>
-                <Card>
+              {selectedChart === "bubble" && (
+                <Card mb={6}>
                   <CardHeader>
-                    <Heading size="md">Usuarios Activos vs Nuevos</Heading>
-                    <Text color="gray.500" fontSize="sm">
-                      Comparación mensual
+                    <Heading size="md">Vulnerabilidades (Burbuja)</Heading>
+                    <Text fontSize="sm" color="gray.500">
+                      Total de vulnerabilidades por estancia
                     </Text>
                   </CardHeader>
                   <CardBody>
-                    <Box h="300px">
+                    <Box bg={cardBg} p={4} borderRadius="xl" boxShadow="md" h="700px">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={usersData}
-                          margin={{
-                            top: 5,
-                            right: 30,
-                            left: 20,
-                            bottom: 5,
-                          }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Bar dataKey="nuevos" fill="#805AD5" />
-                          <Bar dataKey="activos" fill="#3182CE" />
-                        </BarChart>
+                        <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+                          <XAxis type="number" dataKey="x" domain={[-packSize.width / 2, packSize.width / 2]} hide />
+                          <YAxis type="number" dataKey="y" domain={[-packSize.height / 2, packSize.height / 2]} hide />
+                          <Scatter
+                            data={dataSolar}
+                            shape={props => (
+                              <circle
+                                cx={props.cx}
+                                cy={props.cy}
+                                r={props.payload.size}
+                                fill={props.payload.fill}
+                                fillOpacity={1}
+                              />
+                            )}
+                          >
+                            <LabelList dataKey="label" position="center" fill={useColorModeValue('#2D3748', '#FFFFFF')} />
+                          </Scatter>
+                          <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
+                        </ScatterChart>
                       </ResponsiveContainer>
                     </Box>
                   </CardBody>
                 </Card>
-
-                <Card>
-                  <CardHeader>
-                    <Heading size="md">Fuentes de Tráfico</Heading>
-                    <Text color="gray.500" fontSize="sm">
-                      Distribución de tráfico por canal
-                    </Text>
-                  </CardHeader>
-                  <CardBody>
-                    <Box h="300px">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={trafficData}
-                          margin={{
-                            top: 5,
-                            right: 30,
-                            left: 20,
-                            bottom: 5,
-                          }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Line type="monotone" dataKey="directo" stroke="#3182CE" activeDot={{ r: 8 }} />
-                          <Line type="monotone" dataKey="orgánico" stroke="#805AD5" />
-                          <Line type="monotone" dataKey="referido" stroke="#FFBB28" />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </Box>
-                  </CardBody>
-                </Card>
-              </Grid>
+              )}
             </TabPanel>
 
-            {/* Pestaña de Dispositivos - Aquí integramos el contenido del archivo compartido */}
-            <TabPanel px={0}>
-              <Text fontSize="2xl" fontWeight="bold" mb={6}>
-                Dispositivos y Vulnerabilidades
-              </Text>
-              {/* Bubble Chart */}
-              <Box
-                bg={cardBg}
-                p={6}
-                borderRadius="xl"
-                boxShadow="md"
-                overflow="hidden"
-                mb={8}
-                maxW="800px"
-              >
-                <Text fontSize="xl" fontWeight="semibold" mb={4} color="gray.600">
-                  Vulnerabilidades por Estancia
-                </Text>
-
-                <Flex justify="center" align="center">
-                  <TightBubbleChart data={data} width={400} height={400} />
-                </Flex>
-              </Box>
-
-
-
-              {/* Donut Chart + Stacked Bar Chart */}
-              <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={8} mb={10}>
-                <Box bg={cardBg} p={6} borderRadius="xl" boxShadow="md">
-                  <Text fontSize="xl" fontWeight="semibold" mb={4} color="gray.600">
-                    Resumen de Severidad
-                  </Text>
-                  <Flex justify="center" align="center" height="100%">
-                    <ReactApexChart
-                      options={{
-                        chart: { type: 'donut', background: 'transparent' },
-                        labels: pieChartLabels,
-                        theme: { mode: colorMode },
-                        legend: {
-                          position: 'bottom',
-                          labels: { colors: [legendTextColor] }
-                        },
-                        tooltip: {
-                          y: { formatter: val => `${val} vulnerabilidades` }
-                        },
-                        plotOptions: {
-                          pie: { donut: { size: '70%' } }
-                        }
-                      }}
-                      series={pieChartSeries}
-                      type="donut"
-                      width={350}
-                    />
-                  </Flex>
-                </Box>
-
-                <Box bg={cardBg} p={6} borderRadius="xl" boxShadow="md">
-                  <Text fontSize="xl" fontWeight="semibold" mb={4} color="gray.600">
-                    Vulnerabilidades por Dispositivo en cada Estancia
-                  </Text>
-                  <Flex justify="center" align="center" height="100%">
-                    <ReactApexChart
-                      options={{
-                        chart: {
-                          type: 'bar',
-                          stacked: true,
-                          background: 'transparent',
-                          toolbar: { show: false }
-                        },
-                        xaxis: {
-                          categories: categories,
-                          labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } }
-                        },
-                        yaxis: {
-                          title: {
-                            text: 'Vulnerabilidades por Dispositivo',
-                            style: { color: useColorModeValue('#2D3748', '#FFFFFF') }
-                          },
-                          labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } }
-                        },
-                        legend: {
-                          position: 'bottom',
-                          labels: { colors: [useColorModeValue('#2D3748', '#FFFFFF')] }
-                        },
-                        tooltip: {
-                          shared: false,
-                          intersect: true,
-                          y: {
-                            formatter: function (val) {
-                              return `${val} vulnerabilidades`;
-                            }
-                          }
-                        },
-                        theme: { mode: colorMode }
-                      }}
-                      series={stackedSeries}
-                      type="bar"
-                      height={350}
-                    />
-                  </Flex>
-                </Box>
-              </SimpleGrid>
-            </TabPanel>
-
-            <TabPanel>
-              <Box p={4} bg={cardBg} borderRadius="lg">
-                <Text>Contenido de Análisis (en desarrollo)</Text>
-              </Box>
-            </TabPanel>
-
-            <TabPanel>
-              <Box p={4} bg={cardBg} borderRadius="lg">
-                <Text>Contenido de Reportes (en desarrollo)</Text>
-              </Box>
-            </TabPanel>
           </TabPanels>
         </Tabs>
       </Box>

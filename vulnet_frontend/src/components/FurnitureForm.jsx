@@ -45,12 +45,11 @@ const FurnitureForm = ({ onClose, estanciaId }) => {
       console.log(pair[0] + ':', pair[1]);
     }
 
-    axios.post("http://localhost:8000/vulnet/api/v1/muebles/", dataToSend)
-      .then(response => {
-        alert("✅ Furniture created!");
-        window.location.reload(); // 👈 recarga la página automáticamente
+    axios.post(`http://localhost:8000/vulnet/api/v1/muebles/`, dataToSend).then(response => {
+      alert("✅ Furniture created!");
+      window.location.reload(); // 👈 recarga la página automáticamente
 
-      })
+    })
       .catch(error => {
         alert("❌ Error creating furniture.");
         console.error("❌ Detalles:", error.response?.data || error);

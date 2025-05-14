@@ -1,0 +1,12 @@
+
+Django>=3.2
+djangorestframework
+django-cors-headers
+coreapi
+beautifulsoup4
+lxml
+pandas
+openpyxl
+Pillow
+setuptools
+
