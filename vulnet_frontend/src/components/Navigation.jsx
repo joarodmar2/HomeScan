@@ -58,18 +58,6 @@ export function Navigation({ onClose, ...rest }) {
 
           <VStack spacing={2} align="stretch">
 
-
-
-            <Text fontWeight="bold" mb={2} fontSize="sm" color="gray.500">
-              Estos dos se borraran
-            </Text>
-            <Button as={Link} to="/device-create" colorScheme="gray" variant="solid">
-              Create Device
-            </Button>
-            <Button as={Link} to="/connection-create" colorScheme="gray" variant="solid">
-              Create Connection
-            </Button>
-
             <Button
               as={Link}
               to="/Estancia"
@@ -89,16 +77,6 @@ export function Navigation({ onClose, ...rest }) {
               colorScheme="blue"
             >
               Conexiones
-            </Button>
-            <Button
-              as={Link}
-              to="/graph"
-              leftIcon={<FiActivity />}
-              justifyContent="flex-start"
-              variant="ghost"
-              colorScheme="blue"
-            >
-              Grafo de Conexiones
             </Button>
             <Button
               as={Link}

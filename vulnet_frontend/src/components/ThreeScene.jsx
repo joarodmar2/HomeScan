@@ -2,9 +2,11 @@
 
 import { useRef, useEffect, useState } from "react"
 import { useColorMode } from "@chakra-ui/react";
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import FurnitureForm from "./FurnitureForm"
 import Header from "./Header"
+import axios from 'axios';
+
 const CanvasRoom = () => {
     const canvasRef = useRef(null)
     const { nombreEstancia } = useParams()
@@ -23,10 +25,14 @@ const CanvasRoom = () => {
     const [showForm, setShowForm] = useState(false)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
+    const [dispositivosDisponibles, setDispositivosDisponibles] = useState([]);
+    const [dispositivosEstancia, setDispositivosEstancia] = useState([]);
 
     const { colorMode } = useColorMode();
     const isDark = colorMode === "dark";
+    const navigate = useNavigate();
 
+    console.log(dispositivosEstancia)
     // Cargar imagen de fondo con crossOrigin
     useEffect(() => {
         const img = new Image()
@@ -131,6 +137,64 @@ const CanvasRoom = () => {
         window.addEventListener("keydown", handleKeyDown)
         return () => window.removeEventListener("keydown", handleKeyDown)
     }, [selectedItem])
+
+    useEffect(() => {
+        setLoading(true);
+        console.log("nombreEstancia", nombreEstancia);
+
+        // Obtener la estancia por nombre para obtener su ID
+        fetch("http://127.0.0.1:8000/vulnet/api/v1/Estancia/")
+            .then(response => response.json())
+            .then(data => {
+                const estanciaFiltrada = data.find(e => e.nombreEstancia.toLowerCase() === nombreEstancia.toLowerCase());
+
+                if (estanciaFiltrada) {
+                    // Filtrar dispositivos basados en los IDs de la estancia
+                    const idsDispositivosEstancia = estanciaFiltrada.dispositivos; // Los IDs de los dispositivos en esta estancia
+
+                    // Obtener todos los dispositivos y filtrar solo los que están en la estancia
+                    fetch("http://127.0.0.1:8000/vulnet/api/v1/devices/")
+                        .then(res => res.json())
+                        .then(devicesData => {
+                            // Filtrar dispositivos solo por los IDs que vienen de la estancia
+                            const dispositivosFiltrados = devicesData.filter(device =>
+                                idsDispositivosEstancia.includes(device.id)
+                            );
+                            console.log("dispositivosFiltrados", dispositivosFiltrados);
+                            setDispositivosEstancia(dispositivosFiltrados);
+                            setLoading(false);
+                        })
+                        .catch(err => {
+                            console.error("Error al cargar dispositivos:", err);
+                            setError(err.message);
+                            setLoading(false);
+                        });
+                } else {
+                    console.log("Estancia no encontrada");
+                    setDispositivosEstancia([]); // Si no se encuentra la estancia, vaciamos la lista de dispositivos
+                    setLoading(false);
+                }
+            })
+            .catch(error => {
+                console.error("Error al obtener las estancias:", error);
+                setError(error.message);
+                setLoading(false);
+            });
+    }, [nombreEstancia]);
+
+    useEffect(() => {
+        const fetchDispositivos = async () => {
+            try {
+                const respuesta = await axios.get("http://127.0.0.1:8000/vulnet/api/v1/devices/"); // Cambia por tu endpoint real
+                console.log('Dispositivos cargados:', respuesta.data);
+                setDispositivosDisponibles(respuesta.data);
+            } catch (error) {
+                console.error('Error al cargar dispositivos:', error);
+            }
+        };
+
+        fetchDispositivos();
+    }, []);
 
     // Manejo de mouse
     const handleMouseDown = (e) => {
@@ -301,6 +365,49 @@ const CanvasRoom = () => {
         )
     }
 
+    const updateEstancia = async () => {
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/vulnet/api/v1/Estancia/${estancia.id}/`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    nombreEstancia: estancia.nombreEstancia,
+                    dispositivos: estancia.dispositivos
+                }),
+            });
+
+            if (response.ok) {
+                alert("Los cambios han sido guardados correctamente.");
+                navigate("/Estancia");
+            } else {
+                alert("Hubo un error al guardar los cambios.");
+            }
+        } catch (error) {
+            alert("Error de conexión con el servidor.");
+            console.error(error);
+        }
+    };
+    const handleAddDevice = (event) => {
+        const selectedDeviceId = parseInt(event.target.value);
+        if (selectedDeviceId && !estancia.dispositivos.includes(selectedDeviceId)) {
+            setEstancia(prev => ({
+                ...prev,
+                dispositivos: [...prev.dispositivos, selectedDeviceId]
+            }));
+        }
+    };
+
+    const handleDeleteDevice = (deviceIdToRemove) => {
+        const updatedIds = estancia.dispositivos.filter(id => id !== deviceIdToRemove);
+        const updatedDevices = dispositivosEstancia.filter(device => device.id !== deviceIdToRemove);
+
+        setEstancia({ ...estancia, dispositivos: updatedIds });
+        setDispositivosEstancia(updatedDevices); // <-- aquí actualizas lo que estás mostrando
+    };
+
+
     return (
         <>
             <Header title={nombreEstancia} />
@@ -405,6 +512,41 @@ const CanvasRoom = () => {
                             </div>
                         )}
                     </div>
+                    <div style={styles.card}>
+                        <h2 style={styles.nombre}>Dispositivos</h2>
+
+                        <ul style={styles.list}>
+                            {dispositivosEstancia.length > 0 ? (
+                                dispositivosEstancia.map((device) => (
+                                    <li key={device.id} style={styles.listItem}>
+                                        {device.model}
+                                        <button
+                                            style={styles.deleteButton}
+                                            onClick={() => handleDeleteDevice(device.id)}
+                                        >
+                                            ❌
+                                        </button>
+                                    </li>
+                                ))
+                            ) : (
+                                <p style={{ color: "white", fontStyle: "italic" }}>
+                                    No hay dispositivos en esta estancia.
+                                </p>
+                            )}
+                        </ul>
+
+                        {/* 🔹 Select para añadir dispositivos */}
+                        <div style={styles.addDeviceContainer}>
+                            <select style={styles.input} onChange={handleAddDevice} defaultValue="">
+                                <option value="" disabled>Selecciona un dispositivo</option>
+                                {dispositivosDisponibles.map((device) => (
+                                    <option key={device.id} value={device.id}>{device.model}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <button style={styles.saveButton} onClick={updateEstancia}>Guardar</button>
+                    </div>
+
                 </div>
 
                 {showForm && (
@@ -686,6 +828,77 @@ const styles = {
         marginTop: "20px",
         color: "#e2e8f0",
         fontSize: "18px",
+    },
+    card: {
+        backgroundColor: "#1a2238",
+        borderRadius: "12px",
+        padding: "20px",
+        width: "280px",
+        boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
+        border: "1px solid #2a3a5a",
+        display: "flex",
+        flexDirection: "column",
+        gap: "15px",
+    },
+
+    // Título "Dispositivos"
+    nombre: {
+        fontSize: "18px",
+        fontWeight: "600",
+        margin: "0 0 10px 0",
+        color: "#e2e8f0",
+    },
+
+    // Lista de dispositivos
+    list: {
+        listStyle: "none",
+        padding: "0",
+        margin: "0",
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        color: "#a0aec0",
+        fontSize: "14px",
+    },
+
+    // Cada ítem de la lista
+    listItem: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        backgroundColor: "#2a3a5a",
+        padding: "10px",
+        borderRadius: "8px",
+        border: "1px solid #3a4a6a",
+    },
+
+    // Botón de eliminar dispositivo
+    deleteButton: {
+        backgroundColor: "transparent",
+        border: "none",
+        color: "#ff6b6b",
+        fontSize: "16px",
+        cursor: "pointer",
+        marginLeft: "10px",
+    },
+
+    // Contenedor del select para añadir dispositivos
+    addDeviceContainer: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+    },
+
+    // Estilo del select (input de selección)
+    input: {
+        width: "100%",
+        padding: "10px",
+        borderRadius: "6px",
+        backgroundColor: "#2a3a5a",
+        color: "white",
+        border: "1px solid #3a4a6a",
+        outline: "none",
+        cursor: "pointer",
     },
     "@keyframes spin": {
         "0%": { transform: "rotate(0deg)" },

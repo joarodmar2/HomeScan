@@ -95,6 +95,16 @@ export default function EstanciaPage() {
         },
     };
 
+    const scrollStyles = {
+        containerWithScroll: {
+            ...styles.container, // Mantiene todos los estilos originales del contenedor
+            overflowY: 'auto',   // Habilita el scroll vertical
+            maxHeight: '100vh', // Limita la altura al tamaño de la ventana
+        },
+    };
+
+
+
     const fetchEstancias = async () => {
         setIsLoading(true);
         setError(null);
@@ -127,7 +137,8 @@ export default function EstanciaPage() {
     };
 
     return (
-        <div style={styles.container}>
+        //<div style={styles.container}>
+        <div style={scrollStyles.containerWithScroll}>
             <Header title="Estancias" />
 
 

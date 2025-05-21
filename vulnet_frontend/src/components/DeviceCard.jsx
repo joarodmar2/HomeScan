@@ -5,7 +5,7 @@ export function DeviceCard({ device }) {
 
   return (
     <div
-      className="bg-zinc-800 p-3 hover:bg-zinc-700 hover:cursor-pointer"
+      className="bg-slate-800 p-3 hover:bg-slate-700 hover:cursor-pointer rounded-lg"
       onClick={() => {
         navigate(`/devices/${device.id}`);
       }}

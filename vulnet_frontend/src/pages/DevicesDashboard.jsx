@@ -281,6 +281,15 @@ export default function Dashboard() {
     loadStackedData();
   }, []);
 
+  const styles = {
+    containerWithScroll: {
+      overflowY: 'auto',   // Habilita el scroll vertical
+      maxHeight: '100vh',  // Limita la altura al tamaño de la ventana
+      padding: '20px',     // Espaciado interno para que el contenido no quede pegado a los bordes
+      boxSizing: 'border-box',
+    },
+  };
+
   // Procesamiento de datos para el gráfico de barras apiladas
   const categories = stackedData.map(item => item.estancia);
   const dispositivosUnicos = [
@@ -364,194 +373,212 @@ export default function Dashboard() {
   };
 
   return (
-    <Box minH="100vh" bg={bgColor}>
+    <Box style={styles.containerWithScroll}>
+      <Box minH="100vh" bg={bgColor}>
 
-      <Drawer
-        isOpen={isOpen}
-        placement="left"
-        onClose={onClose}
-        returnFocusOnClose={false}
-        onOverlayClick={onClose}
-        size="full"
-      >
-        <DrawerOverlay />
-        <DrawerContent>
-          <DrawerCloseButton />
-          <DrawerHeader>DataViz</DrawerHeader>
-        </DrawerContent>
-      </Drawer>
+        <Drawer
+          isOpen={isOpen}
+          placement="left"
+          onClose={onClose}
+          returnFocusOnClose={false}
+          onOverlayClick={onClose}
+          size="full"
+        >
+          <DrawerOverlay />
+          <DrawerContent>
+            <DrawerCloseButton />
+            <DrawerHeader>DataViz</DrawerHeader>
+          </DrawerContent>
+        </Drawer>
 
-      {/* Header */}
-      <Flex
-        ml={{ base: 0, md: 60 }}
-        px={4}
-        height="20"
-        alignItems="center"
-        bg={cardBg}
-        borderBottomWidth="1px"
-        borderBottomColor={useColorModeValue("gray.200", "gray.700")}
-        justifyContent="space-between"
-      >
-        <IconButton
-          display={{ base: "flex", md: "none" }}
-          onClick={onOpen}
-          variant="outline"
-          aria-label="open menu"
-          icon={<FiMenu />}
-        />
+        {/* Header */}
+        {/* Nueva cabecera para el título y logo de la app */}
+        <Flex
+          bg={useColorModeValue("gray.100", "gray.800")}
+          color={useColorModeValue("gray.700", "gray.200")}
+          px={4}
+          height="16"
+          alignItems="center"
+          justifyContent="center" // Centra los elementos horizontalmente
+          flexDirection="column" // Centra los elementos verticalmente si hay varios
+        >
+          {/* Aquí puedes añadir el logo de tu app */}
+          {/* Ejemplo: */}
+          {/* <Image src="/ruta/a/tu/logo.png" alt="Logo de la App" height="10" mb={2} /> */}
+          <Heading size="2xl" fontWeight="bold" textAlign="center">Nombre de tu App</Heading>
+        </Flex>
 
-        <Heading size="lg" fontWeight="semibold">
-          Dashboard
-        </Heading>
-
-        <HStack spacing={4}>
-
+        <Flex
+          ml={{ base: 0, md: 60 }}
+          px={4}
+          height="20"
+          alignItems="center"
+          bg={cardBg}
+          borderBottomWidth="1px"
+          borderBottomColor={useColorModeValue("gray.200", "gray.700")}
+          justifyContent="space-between"
+        >
           <IconButton
-            aria-label="Alternar modo claro/oscuro"
-            icon={colorMode === 'light' ? <FaMoon /> : <FaSun />}
-            onClick={toggleColorMode}
-            variant="ghost"
-            size="md"
+            display={{ base: "flex", md: "none" }}
+            onClick={onOpen}
+            variant="outline"
+            aria-label="open menu"
+            icon={<FiMenu />}
           />
 
+          <Heading size="lg" fontWeight="semibold">
+            Dashboard
+          </Heading>
 
-        </HStack>
-      </Flex>
+          <HStack spacing={4}>
 
-      {/* Main Content */}
-      <Box ml={{ base: 0, md: 60 }} p={4}>
-        <Tabs colorScheme="blue" mb={6}>
+            <IconButton
+              aria-label="Alternar modo claro/oscuro"
+              icon={colorMode === 'light' ? <FaMoon /> : <FaSun />}
+              onClick={toggleColorMode}
+              variant="ghost"
+              size="md"
+            />
 
-          <TabPanels>
-            <TabPanel px={0}>
-              {/* Stats Cards */}
-              {/* Mini Statistics */}
-              <SimpleGrid columns={{ base: 1, md: 2, lg: 5 }} spacing={4} mb={8}>
-                <MiniStatistics title="Dispositivos" value={mockStats.ndev} icon={FiCpu} iconColor="blue.400" />
-                <MiniStatistics title="Dispositivos Vulnerables" value={mockStats.nvuln} icon={FiShield} iconColor="red.400" />
-                <MiniStatistics title="Vulnerabilidades Totales" value={mockStats.total_vulnerabilidades} icon={FiAlertCircle} iconColor="orange.400" />
-                <MiniStatistics title="Promedio Ponderado" value={mockStats.weighted_average} icon={FiActivity} iconColor="purple.400" />
-                <MiniStatistics title="Sostenibilidad Media" value={mockStats.average_sustainability} icon={FiHeart} iconColor="green.400" />
-              </SimpleGrid>
 
-              {/* Selector de tipo de gráfico */}
-              <HStack spacing={4} mb={4}>
-                <Button
-                  colorScheme={selectedChart === "bar" ? "blue" : "gray"}
-                  onClick={() => setSelectedChart("bar")}
-                >
-                  Barras
-                </Button>
-                <Button
-                  colorScheme={selectedChart === "donut" ? "blue" : "gray"}
-                  onClick={() => setSelectedChart("donut")}
-                >
-                  Donut
-                </Button>
-                <Button
-                  colorScheme={selectedChart === "bubble" ? "blue" : "gray"}
-                  onClick={() => setSelectedChart("bubble")}
-                >
-                  Burbuja
-                </Button>
-              </HStack>
+          </HStack>
+        </Flex>
 
-              {/* Gráfico seleccionado */}
-              {selectedChart === "bar" && (
-                <Card mb={6}>
-                  <CardHeader>
-                    <Heading size="md">Vulnerabilidades por Estancia</Heading>
-                    <Text fontSize="sm" color="gray.500">
-                      Dispositivos vulnerables por estancia
-                    </Text>
-                  </CardHeader>
-                  <CardBody>
-                    <Box bg={cardBg} p={4} borderRadius="xl" boxShadow="md" h="700px">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <ReactApexChart
-                          options={{
-                            chart: { type: 'bar', stacked: true, background: 'transparent', toolbar: { show: false } },
-                            xaxis: { categories, labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } } },
-                            yaxis: { title: { text: 'Vulnerabilidades' }, labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } } },
-                            legend: { position: 'bottom', labels: { colors: [useColorModeValue('#2D3748', '#FFFFFF')] } },
-                            tooltip: { y: { formatter: v => `${v} vulnerabilidades` } },
-                            theme: { mode: colorMode }
-                          }}
-                          series={stackedSeries}
-                          type="bar"
-                          height={700}
-                        />
-                      </ResponsiveContainer>
-                    </Box>
-                  </CardBody>
-                </Card>
-              )}
+        {/* Main Content */}
+        <Box ml={{ base: 0, md: 60 }} p={4}>
+          <Tabs colorScheme="blue" mb={6}>
 
-              {selectedChart === "donut" && (
-                <Card mb={6}>
-                  <CardHeader>
-                    <Heading size="md">Tipos de Vulnerabilidades</Heading>
-                    <Text fontSize="sm" color="gray.500">
-                      Severidad de vulnerabilidades
-                    </Text>
-                  </CardHeader>
-                  <CardBody>
-                    <Box bg={cardBg} p={4} borderRadius="xl" boxShadow="md" h="700px" display="flex" alignItems="center" justifyContent="center">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie data={salesData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={150} label>
-                            {salesData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                          <Legend verticalAlign="bottom" height={24} />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </Box>
-                  </CardBody>
-                </Card>
-              )}
+            <TabPanels>
+              <TabPanel px={0}>
+                {/* Stats Cards */}
+                {/* Mini Statistics */}
+                <SimpleGrid columns={{ base: 1, md: 2, lg: 5 }} spacing={4} mb={8}>
+                  <MiniStatistics title="Dispositivos" value={mockStats.ndev} icon={FiCpu} iconColor="blue.400" />
+                  <MiniStatistics title="Dispositivos Vulnerables" value={mockStats.nvuln} icon={FiShield} iconColor="red.400" />
+                  <MiniStatistics title="Vulnerabilidades Totales" value={mockStats.total_vulnerabilidades} icon={FiAlertCircle} iconColor="orange.400" />
+                  <MiniStatistics title="Promedio Ponderado" value={mockStats.weighted_average} icon={FiActivity} iconColor="purple.400" />
+                  <MiniStatistics title="Sostenibilidad Media" value={mockStats.average_sustainability} icon={FiHeart} iconColor="green.400" />
+                </SimpleGrid>
 
-              {selectedChart === "bubble" && (
-                <Card mb={6}>
-                  <CardHeader>
-                    <Heading size="md">Vulnerabilidades (Burbuja)</Heading>
-                    <Text fontSize="sm" color="gray.500">
-                      Total de vulnerabilidades por estancia
-                    </Text>
-                  </CardHeader>
-                  <CardBody>
-                    <Box bg={cardBg} p={4} borderRadius="xl" boxShadow="md" h="700px">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-                          <XAxis type="number" dataKey="x" domain={[-packSize.width / 2, packSize.width / 2]} hide />
-                          <YAxis type="number" dataKey="y" domain={[-packSize.height / 2, packSize.height / 2]} hide />
-                          <Scatter
-                            data={dataSolar}
-                            shape={props => (
-                              <circle
-                                cx={props.cx}
-                                cy={props.cy}
-                                r={props.payload.size}
-                                fill={props.payload.fill}
-                                fillOpacity={1}
-                              />
-                            )}
-                          >
-                            <LabelList dataKey="label" position="center" fill={useColorModeValue('#2D3748', '#FFFFFF')} />
-                          </Scatter>
-                          <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
-                        </ScatterChart>
-                      </ResponsiveContainer>
-                    </Box>
-                  </CardBody>
-                </Card>
-              )}
-            </TabPanel>
+                {/* Selector de tipo de gráfico */}
+                <HStack spacing={4} mb={4}>
+                  <Button
+                    colorScheme={selectedChart === "bar" ? "blue" : "gray"}
+                    onClick={() => setSelectedChart("bar")}
+                  >
+                    Barras
+                  </Button>
+                  <Button
+                    colorScheme={selectedChart === "donut" ? "blue" : "gray"}
+                    onClick={() => setSelectedChart("donut")}
+                  >
+                    Donut
+                  </Button>
+                  <Button
+                    colorScheme={selectedChart === "bubble" ? "blue" : "gray"}
+                    onClick={() => setSelectedChart("bubble")}
+                  >
+                    Burbuja
+                  </Button>
+                </HStack>
 
-          </TabPanels>
-        </Tabs>
+                {/* Gráfico seleccionado */}
+                {selectedChart === "bar" && (
+                  <Card mb={6}>
+                    <CardHeader>
+                      <Heading size="md">Vulnerabilidades por Estancia</Heading>
+                      <Text fontSize="sm" color="gray.500">
+                        Dispositivos vulnerables por estancia
+                      </Text>
+                    </CardHeader>
+                    <CardBody>
+                      <Box bg={cardBg} p={4} borderRadius="xl" boxShadow="md" h="700px">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <ReactApexChart
+                            options={{
+                              chart: { type: 'bar', stacked: true, background: 'transparent', toolbar: { show: false } },
+                              xaxis: { categories, labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } } },
+                              yaxis: { title: { text: 'Vulnerabilidades' }, labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } } },
+                              legend: { position: 'bottom', labels: { colors: [useColorModeValue('#2D3748', '#FFFFFF')] } },
+                              tooltip: { y: { formatter: v => `${v} vulnerabilidades` } },
+                              theme: { mode: colorMode }
+                            }}
+                            series={stackedSeries}
+                            type="bar"
+                            height={700}
+                          />
+                        </ResponsiveContainer>
+                      </Box>
+                    </CardBody>
+                  </Card>
+                )}
+
+                {selectedChart === "donut" && (
+                  <Card mb={6}>
+                    <CardHeader>
+                      <Heading size="md">Tipos de Vulnerabilidades</Heading>
+                      <Text fontSize="sm" color="gray.500">
+                        Severidad de vulnerabilidades
+                      </Text>
+                    </CardHeader>
+                    <CardBody>
+                      <Box bg={cardBg} p={4} borderRadius="xl" boxShadow="md" h="700px" display="flex" alignItems="center" justifyContent="center">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie data={salesData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={150} label>
+                              {salesData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend verticalAlign="bottom" height={24} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </Box>
+                    </CardBody>
+                  </Card>
+                )}
+
+                {selectedChart === "bubble" && (
+                  <Card mb={6}>
+                    <CardHeader>
+                      <Heading size="md">Vulnerabilidades (Burbuja)</Heading>
+                      <Text fontSize="sm" color="gray.500">
+                        Total de vulnerabilidades por estancia
+                      </Text>
+                    </CardHeader>
+                    <CardBody>
+                      <Box bg={cardBg} p={4} borderRadius="xl" boxShadow="md" h="700px">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+                            <XAxis type="number" dataKey="x" domain={[-packSize.width / 2, packSize.width / 2]} hide />
+                            <YAxis type="number" dataKey="y" domain={[-packSize.height / 2, packSize.height / 2]} hide />
+                            <Scatter
+                              data={dataSolar}
+                              shape={props => (
+                                <circle
+                                  cx={props.cx}
+                                  cy={props.cy}
+                                  r={props.payload.size}
+                                  fill={props.payload.fill}
+                                  fillOpacity={1}
+                                />
+                              )}
+                            >
+                              <LabelList dataKey="label" position="center" fill={useColorModeValue('#2D3748', '#FFFFFF')} />
+                            </Scatter>
+                            <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
+                          </ScatterChart>
+                        </ResponsiveContainer>
+                      </Box>
+                    </CardBody>
+                  </Card>
+                )}
+              </TabPanel>
+
+            </TabPanels>
+          </Tabs>
+        </Box>
       </Box>
     </Box>
   );
