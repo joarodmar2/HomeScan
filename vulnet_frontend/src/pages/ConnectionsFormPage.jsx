@@ -7,12 +7,141 @@ import { createConnection, deleteConnection, getConnection, updateConnection, ge
 import { getDeviceModels } from "../api/devices.api";
 import { toast } from "react-hot-toast";
 
+// ----- Styles helper -----
+const getStyles = (dark) => ({
+  container: {
+    maxWidth: '480px',
+    margin: '1.5rem auto',
+    padding: '0 1rem',
+    color: dark ? '#ffffff' : '#1f2937',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '1.5rem',
+  },
+  title: {
+    fontSize: '1.5rem',
+    fontWeight: 600,
+  },
+  field: {
+    marginBottom: '1.5rem',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  label: {
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    marginBottom: '0.25rem',
+    color: dark ? '#ffffff' : '#1f2937',
+  },
+  input: {
+    backgroundColor: dark ? '#23232d' : 'transparent',
+    border: `1px solid ${dark ? '#4B5563' : '#D1D5DB'}`,
+    padding: '0.5rem 0.25rem',
+    color: dark ? '#ffffff' : '#1f2937',
+    outline: 'none',
+  },
+  select: {
+    backgroundColor: dark ? '#23232d' : 'transparent',
+    border: `1px solid ${dark ? '#4B5563' : '#D1D5DB'}`,
+    padding: '0.5rem 0.25rem',
+    color: dark ? '#ffffff' : '#1f2937',
+    outline: 'none',
+  },
+  error: {
+    marginTop: '0.25rem',
+    fontSize: '0.75rem',
+    color: '#F87171',
+  },
+  submitBtn: {
+    width: '100%',
+    padding: '0.5rem',
+    fontWeight: 500,
+    background: 'none',
+    color: dark ? '#ffffff' : '#4F46E5',
+    border: 'none',
+    cursor: 'pointer',
+  },
+  deleteBtn: {
+    backgroundColor: '#EF4444',
+    color: '#ffffff',
+    padding: '0.75rem',
+    borderRadius: '0.5rem',
+    width: '12rem',
+    marginTop: '0.75rem',
+    cursor: 'pointer',
+    border: 'none',
+  },
+});
+// -------------------------
+
+function ConnectionForm({ register, errors, deviceModels, connProtocols, styles }) {
+  return (
+    <>
+      {/* Tipo de protocolo */}
+      <div style={styles.field}>
+        <label htmlFor="type" style={styles.label}>Tipo de Protocolo</label>
+        <select
+          id="type"
+          {...register("type", { required: true })}
+          style={styles.select}
+          defaultValue=""
+        >
+          <option value="" disabled hidden>Seleccione un protocolo</option>
+          {connProtocols.map((p, i) => (
+            <option key={i} value={p}>{p}</option>
+          ))}
+        </select>
+        {errors.type && <p style={styles.error}>Este campo es obligatorio</p>}
+      </div>
+
+      {/* Primer dispositivo */}
+      <div style={styles.field}>
+        <label htmlFor="first_device" style={styles.label}>Primer Dispositivo</label>
+        <select
+          id="first_device"
+          {...register("first_device", { required: true })}
+          style={styles.select}
+          defaultValue=""
+        >
+          <option value="" disabled hidden>Seleccione un dispositivo</option>
+          {deviceModels.map((m, i) => (
+            <option key={i} value={m}>{m}</option>
+          ))}
+        </select>
+        {errors.first_device && <p style={styles.error}>Este campo es obligatorio</p>}
+      </div>
+
+      {/* Segundo dispositivo */}
+      <div style={styles.field}>
+        <label htmlFor="second_device" style={styles.label}>Segundo Dispositivo</label>
+        <select
+          id="second_device"
+          {...register("second_device", { required: true })}
+          style={styles.select}
+          defaultValue=""
+        >
+          <option value="" disabled hidden>Seleccione un dispositivo</option>
+          {deviceModels.map((m, i) => (
+            <option key={i} value={m}>{m}</option>
+          ))}
+        </select>
+        {errors.second_device && <p style={styles.error}>Este campo es obligatorio</p>}
+      </div>
+    </>
+  );
+}
+
 export function ConnectionsFormPage() {
   const [isShown, setIsShown] = useState(false);
   const [device_models, setDeviceModels] = useState([]);
   const [conn_protocols, setConnProtocols] = useState([]);
   const { colorMode, toggleColorMode } = useColorMode();
   const modoOscuro = colorMode === 'dark';
+
+  const styles = getStyles(modoOscuro);
 
   // Eliminado el manejo manual de darkMode y sincronización de localStorage/document.documentElement
 
@@ -89,71 +218,24 @@ export function ConnectionsFormPage() {
 
 
   return (
-    <div className="max-w-md mx-auto mt-6">
-      <Flex justifyContent="space-between" alignItems="center" mb={6}>
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+    <div style={styles.container}>
+      <Flex style={styles.header} alignItems="center" mb={6}>
+        <h1 style={styles.title}>
           Formulario de Conexiones
         </h1>
         <IconButton
           icon={modoOscuro ? <FaSun /> : <FaMoon />}
           onClick={toggleColorMode}
           aria-label="Toggle color mode"
-          isRound
+          variant="ghost"
           size="md"
         />
       </Flex>
-      <form onSubmit={onSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-white">Tipo de Protocolo</label>
-          <select
-            id="type"
-            {...register("type", { required: true })}
-            className="block w-full bg-transparent border-b border-gray-300 dark:border-gray-600 py-2 focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-400 transition text-gray-900 dark:text-white"
-            defaultValue=""
-          >
-            <option value="" disabled hidden>Seleccione un protocolo</option>
-            {conn_protocols.map((protocol, i) => (
-              <option key={i} value={protocol}>{protocol}</option>
-            ))}
-          </select>
-          {errors.type && <p className="mt-1 text-xs text-red-500">Este campo es obligatorio</p>}
-        </div>
-
-        <div>
-          <label htmlFor="first_device" className="block text-sm font-medium text-gray-700 dark:text-white">Primer Dispositivo</label>
-          <select
-            id="first_device"
-            {...register("first_device", { required: true })}
-            className="block w-full bg-transparent border-b border-gray-300 dark:border-gray-600 py-2 focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-400 transition text-gray-900 dark:text-white"
-            defaultValue=""
-          >
-            <option value="" disabled hidden>Seleccione un dispositivo</option>
-            {device_models.map((model, i) => (
-              <option key={i} value={model}>{model}</option>
-            ))}
-          </select>
-          {errors.first_device && <p className="mt-1 text-xs text-red-500">Este campo es obligatorio</p>}
-        </div>
-
-        <div>
-          <label htmlFor="second_device" className="block text-sm font-medium text-gray-700 dark:text-white">Segundo Dispositivo</label>
-          <select
-            id="second_device"
-            {...register("second_device", { required: true })}
-            className="block w-full bg-transparent border-b border-gray-300 dark:border-gray-600 py-2 focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-400 transition text-gray-900 dark:text-white"
-            defaultValue=""
-          >
-            <option value="" disabled hidden>Seleccione un dispositivo</option>
-            {device_models.map((model, i) => (
-              <option key={i} value={model}>{model}</option>
-            ))}
-          </select>
-          {errors.second_device && <p className="mt-1 text-xs text-red-500">Este campo es obligatorio</p>}
-        </div>
-
+      <form onSubmit={onSubmit}>
+        <ConnectionForm register={register} errors={errors} deviceModels={device_models} connProtocols={conn_protocols} styles={styles} />
         <button
           type="submit"
-          className="w-full text-center text-indigo-600 dark:text-indigo-400 font-medium py-2 hover:text-indigo-500 dark:hover:text-indigo-300 transition"
+          style={styles.submitBtn}
         >
           Guardar
         </button>
@@ -161,7 +243,7 @@ export function ConnectionsFormPage() {
       {params.id && (
         <div className="flex justify-end">
           <button
-            className="bg-red-500 text-white px-4 py-2 rounded-md mt-4 hover:bg-red-600 transition"
+            style={styles.deleteBtn}
             onClick={async () => {
               const accepted = window.confirm("Are you sure?");
               if (accepted) {

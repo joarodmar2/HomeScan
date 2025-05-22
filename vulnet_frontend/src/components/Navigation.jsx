@@ -64,7 +64,7 @@ export function Navigation({ onClose, ...rest }) {
         <Box>
 
 
-          <Text fontWeight="bold" mb={2} fontSize="sm" color="gray.500">
+          <Text fontWeight="bold" mb={2} fontSize="sm" color="gray.500" fontFamily="'Inter', 'Segoe UI', sans-serif">
             MENÚ PRINCIPAL
           </Text>
 
@@ -77,6 +77,7 @@ export function Navigation({ onClose, ...rest }) {
               justifyContent="flex-start"
               variant="ghost"
               colorScheme="blue"
+              fontFamily="'Inter', 'Segoe UI', sans-serif"
             >
               Estancias
             </Button>
@@ -87,6 +88,7 @@ export function Navigation({ onClose, ...rest }) {
               justifyContent="flex-start"
               variant="ghost"
               colorScheme="blue"
+              fontFamily="'Inter', 'Segoe UI', sans-serif"
             >
               Conexiones
             </Button>
@@ -97,6 +99,7 @@ export function Navigation({ onClose, ...rest }) {
               justifyContent="flex-start"
               variant="ghost"
               colorScheme="blue"
+              fontFamily="'Inter', 'Segoe UI', sans-serif"
             >Dashboard
             </Button>
             <Button
@@ -106,6 +109,7 @@ export function Navigation({ onClose, ...rest }) {
               justifyContent="flex-start"
               variant="ghost"
               colorScheme="blue"
+              fontFamily="'Inter', 'Segoe UI', sans-serif"
             >Dispositivos
             </Button>
 
@@ -115,11 +119,7 @@ export function Navigation({ onClose, ...rest }) {
 
         <Divider />
 
-        <Box mt="auto" pb={4}>
-          <Button leftIcon={<FiDownload />} colorScheme="blue" variant="outline" w="full">
-            Exportar Datos
-          </Button>
-        </Box>
+
       </VStack>
     </Box>
   );

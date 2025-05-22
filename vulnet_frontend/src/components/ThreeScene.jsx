@@ -10,7 +10,8 @@ import axios from 'axios';
 const CanvasRoom = () => {
     const canvasRef = useRef(null)
     const { nombreEstancia } = useParams()
-
+    // debajo de otros useState
+    const [activePanel, setActivePanel] = useState("furniture");   // "furniture" | "devices"
     const [furniture, setFurniture] = useState([])
     const [selectedItem, setSelectedItem] = useState(null)
     const [rotations, setRotations] = useState({})
@@ -29,6 +30,15 @@ const CanvasRoom = () => {
     const [dispositivosEstancia, setDispositivosEstancia] = useState([]);
 
     const { colorMode } = useColorMode();
+    // unified light/dark palette
+    const COLORS = {
+        lightBg: "#f4f4f4",
+        lightCard: "#ffffff",
+        darkBg: "#1a202c",
+        darkCard: "#2d3748",
+        darkText: "#ffffff",
+        lightText: "#1a1a1a",
+    };
     const isDark = colorMode === "dark";
     const navigate = useNavigate();
 
@@ -413,78 +423,118 @@ const CanvasRoom = () => {
             <Header title={nombreEstancia} />
             <div style={{
                 ...styles.container,
-                backgroundColor: isDark ? "#1a1a2e" : "#f4f4f4",
-                color: isDark ? "#ffffff" : "#1a1a1a",
+                backgroundColor: isDark ? COLORS.darkBg : COLORS.lightBg,
+                color: isDark ? COLORS.darkText : COLORS.lightText,
             }}>
                 <div style={styles.header}>
 
                 </div>
 
                 <div style={styles.content}>
-                    <div style={{
-                        ...styles.furniturePanel,
-                        backgroundColor: isDark ? "#16213e" : "#ffffff",
-                    }}>
+                    <div style={styles.sideColumn}>
                         <div style={{
-                            ...styles.panelHeader,
-                            backgroundColor: isDark ? "#0f3460" : "#e2e8f0",
+                            ...styles.furniturePanel,
+                            backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard,
                         }}>
-                            <h3 style={styles.panelTitle}>Catálogo de muebles</h3>
-                            <button onClick={() => setShowForm(true)} style={styles.addButton} title="Añadir nuevo mueble">
-                                +
-                            </button>
-                        </div>
+                            <div style={{
+                                ...styles.panelHeader,
+                                backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard,
+                            }}>
+                                <h3
+                                    style={{
+                                        ...styles.panelTitle,
+                                        color: isDark ? COLORS.darkText : COLORS.lightText,
+                                    }}
+                                >
+                                    Muebles
+                                </h3>
+                                <button onClick={() => setShowForm(true)} style={styles.addButton} title="Añadir nuevo mueble">
+                                    +
+                                </button>
+                            </div>
 
-                        <div style={styles.furnitureGrid}>
-                            {muebles.map((mueble, index) => (
-                                <div key={index} style={styles.furnitureItemContainer}>
-                                    <img
-                                        src={`http://localhost:8000/${mueble.imagen}`}
-                                        alt={mueble.tipo}
-                                        style={styles.furnitureItem}
-                                        draggable
-                                        onDragStart={(e) => {
-                                            e.dataTransfer.setData("tipo", mueble.tipo)
-                                            e.dataTransfer.setData("imagen", mueble.imagen)
-                                        }}
-                                    />
-                                    <span style={styles.furnitureLabel}>{mueble.tipo}</span>
-                                </div>
-                            ))}
-                        </div>
+                            <div style={styles.furnitureGrid}>
+                                {muebles.map((mueble, index) => (
+                                    <div key={index} style={styles.furnitureItemContainer}>
+                                        <img
+                                            src={`http://localhost:8000/${mueble.imagen}`}
+                                            alt={mueble.tipo}
+                                            style={styles.furnitureItem}
+                                            draggable
+                                            onDragStart={(e) => {
+                                                e.dataTransfer.setData("tipo", mueble.tipo)
+                                                e.dataTransfer.setData("imagen", mueble.imagen)
+                                            }}
+                                        />
+                                        <span
+                                            style={{
+                                                ...styles.furnitureLabel,
+                                                color: isDark ? COLORS.darkText : COLORS.lightText,
+                                            }}
+                                        >
+                                            {mueble.tipo}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
 
-                        <div style={styles.panelSection}>
-                            <h4 style={styles.sectionTitle}>Textura del suelo</h4>
-                            <select onChange={(e) => setBackgroundImage(e.target.value)} style={styles.select} value={backgroundImage}>
-                                <option value="http://localhost:8000/media/textures/wood.jpg">Madera marrón claro</option>
-                                <option value="http://localhost:8000/media/textures/baldosas.jpeg">Baldosas</option>
-                                <option value="http://localhost:8000/media/textures/dark_wood.png">Madera marrón oscuro</option>
-                            </select>
-                        </div>
+                            <div style={styles.panelSection}>
+                                <h4
+                                    style={{
+                                        ...styles.sectionTitle,
+                                        color: isDark ? COLORS.darkText : COLORS.lightText,
+                                    }}
+                                >
+                                    Textura del suelo
+                                </h4>
+                                <select
+                                    onChange={(e) => setBackgroundImage(e.target.value)}
+                                    style={{
+                                        ...styles.select,
+                                        backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard,
+                                        color: isDark ? COLORS.darkText : COLORS.lightText,
+                                    }}
+                                    value={backgroundImage}
+                                >
+                                    <option value="http://localhost:8000/media/textures/wood.jpg">Madera marrón claro</option>
+                                    <option value="http://localhost:8000/media/textures/baldosas.jpeg">Baldosas</option>
+                                    <option value="http://localhost:8000/media/textures/dark_wood.png">Madera marrón oscuro</option>
+                                </select>
+                            </div>
 
-                        <div style={styles.helpSection}>
-                            <h4 style={styles.sectionTitle}>Ayuda</h4>
-                            <ul style={styles.helpList}>
-                                <li>Arrastra y suelta muebles en el lienzo</li>
-                                <li>Selecciona un mueble para moverlo</li>
-                                <li>Usa la tecla "R" para rotar</li>
-                                <li>Arrastra el punto azul para redimensionar</li>
-                            </ul>
-                            <button
-                                onClick={guardarCambios}
-                                style={saving ? { ...styles.saveButton, ...styles.savingButton } : styles.saveButton}
-                                disabled={saving}
-                            >
-                                {saving ? "Guardando..." : "Guardar cambios"}
-                            </button>
+                            <div style={styles.helpSection}>
+                                <h4
+                                    style={{
+                                        ...styles.sectionTitle,
+                                        color: isDark ? COLORS.darkText : COLORS.lightText,
+                                    }}
+                                >
+                                    Ayuda
+                                </h4>
+                                <ul
+                                    style={{
+                                        ...styles.helpList,
+                                        color: isDark ? COLORS.darkText : COLORS.lightText,
+                                    }}
+                                >
+                                    <li>Usa la tecla "R" para rotar</li>
+                                    <li>Arrastra el punto azul para redimensionar</li>
+                                </ul>
+                                <button
+                                    onClick={guardarCambios}
+                                    style={saving ? { ...styles.saveButton, ...styles.savingButton } : styles.saveButton}
+                                    disabled={saving}
+                                >
+                                    {saving ? "Guardando..." : "Guardar cambios"}
+                                </button>
+                            </div>
                         </div>
                     </div>
-
                     <div style={styles.canvasContainer}>
                         <canvas
                             ref={canvasRef}
-                            width={800}
-                            height={600}
+                            width={1000}
+                            height={700}
                             onMouseDown={handleMouseDown}
                             onMouseMove={handleMouseMove}
                             onMouseUp={handleMouseUp}
@@ -492,7 +542,7 @@ const CanvasRoom = () => {
                             onDragOver={(e) => e.preventDefault()}
                             style={{
                                 ...styles.canvas,
-                                backgroundColor: isDark ? "#ffffff" : "#e0e0e0",
+                                backgroundColor: isDark ? COLORS.darkCard : "#e0e0e0",
                             }}
                         />
                         {selectedItem !== null && (
@@ -512,13 +562,38 @@ const CanvasRoom = () => {
                             </div>
                         )}
                     </div>
-                    <div style={styles.card}>
-                        <h2 style={styles.nombre}>Dispositivos</h2>
+                    <div
+                        style={{
+                            ...styles.card,
+                            backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard,
+                            marginLeft: "-15px",
+                        }}
+                    >
+                        <h2
+                            style={{
+                                ...styles.nombre,
+                                color: isDark ? COLORS.darkText : COLORS.lightText,
+                            }}
+                        >
+                            Dispositivos
+                        </h2>
 
-                        <ul style={styles.list}>
+                        <ul
+                            style={{
+                                ...styles.list,
+                                color: isDark ? COLORS.darkText : COLORS.lightText,
+                            }}
+                        >
                             {dispositivosEstancia.length > 0 ? (
                                 dispositivosEstancia.map((device) => (
-                                    <li key={device.id} style={styles.listItem}>
+                                    <li
+                                        key={device.id}
+                                        style={{
+                                            ...styles.listItem,
+                                            backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard,
+                                            color: isDark ? COLORS.darkText : COLORS.lightText,
+                                        }}
+                                    >
                                         {device.model}
                                         <button
                                             style={styles.deleteButton}
@@ -529,7 +604,7 @@ const CanvasRoom = () => {
                                     </li>
                                 ))
                             ) : (
-                                <p style={{ color: "white", fontStyle: "italic" }}>
+                                <p style={{ color: isDark ? COLORS.darkText : COLORS.lightText, fontStyle: "italic" }}>
                                     No hay dispositivos en esta estancia.
                                 </p>
                             )}
@@ -537,7 +612,15 @@ const CanvasRoom = () => {
 
                         {/* 🔹 Select para añadir dispositivos */}
                         <div style={styles.addDeviceContainer}>
-                            <select style={styles.input} onChange={handleAddDevice} defaultValue="">
+                            <select
+                                style={{
+                                    ...styles.input,
+                                    backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard,
+                                    color: isDark ? COLORS.darkText : COLORS.lightText,
+                                }}
+                                onChange={handleAddDevice}
+                                defaultValue=""
+                            >
                                 <option value="" disabled>Selecciona un dispositivo</option>
                                 {dispositivosDisponibles.map((device) => (
                                     <option key={device.id} value={device.id}>{device.model}</option>
@@ -546,7 +629,6 @@ const CanvasRoom = () => {
                         </div>
                         <button style={styles.saveButton} onClick={updateEstancia}>Guardar</button>
                     </div>
-
                 </div>
 
                 {showForm && (
@@ -603,10 +685,10 @@ const styles = {
     content: {
         display: "flex",
         gap: "25px",
-        justifyContent: "center",
+        justifyContent: "flex-start",   // alinea todo al inicio
         alignItems: "flex-start",
         width: "100%",
-        maxWidth: "1200px",
+        maxWidth: "100%",
     },
     furniturePanel: {
         // backgroundColor will be set dynamically
@@ -623,7 +705,6 @@ const styles = {
         justifyContent: "space-between",
         alignItems: "center",
         padding: "15px 20px",
-        borderBottom: "1px solid #2a3a5a",
         // backgroundColor will be set dynamically
     },
     panelTitle: {
@@ -679,7 +760,7 @@ const styles = {
     },
     furnitureLabel: {
         fontSize: "12px",
-        color: "#a0aec0",
+        color: "#a0aec0", // will be overridden dynamically
         textAlign: "center",
         maxWidth: "100%",
         overflow: "hidden",
@@ -687,8 +768,7 @@ const styles = {
         whiteSpace: "nowrap",
     },
     panelSection: {
-        padding: "15px 20px",
-        borderTop: "1px solid #2a3a5a",
+        padding: "0px 20px 5px", // elimina espacio superior
     },
     sectionTitle: {
         fontSize: "16px",
@@ -709,7 +789,6 @@ const styles = {
     },
     helpSection: {
         padding: "15px 20px",
-        borderTop: "1px solid #2a3a5a",
     },
     helpList: {
         margin: "0",
@@ -717,9 +796,14 @@ const styles = {
         color: "#a0aec0",
         fontSize: "14px",
     },
+    sideColumn: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "25px",
+    },
     canvasContainer: {
         position: "relative",
-        flexGrow: 1,
+        flexGrow: 2,
     },
     canvas: {
         border: "none",
@@ -727,8 +811,8 @@ const styles = {
         // backgroundColor will be set dynamically
         boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
         width: "100%",
-        maxWidth: "800px",
-        height: "600px",
+        maxWidth: "1000px",
+        height: "700px",
     },
     itemControls: {
         position: "absolute",
@@ -763,6 +847,7 @@ const styles = {
         cursor: "pointer",
         boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
         transition: "all 0.2s ease",
+        marginTop: "15px",
     },
     savingButton: {
         backgroundColor: "#388E3C",
@@ -829,8 +914,9 @@ const styles = {
         color: "#e2e8f0",
         fontSize: "18px",
     },
+
     card: {
-        backgroundColor: "#1a2238",
+        backgroundColor: "#2a3a5a",
         borderRadius: "12px",
         padding: "20px",
         width: "280px",

@@ -18,7 +18,7 @@ export default function EstanciaPage() {
     const styles = {
         container: {
             width: '100%',
-            maxWidth: '1200px',
+            maxWidth: '2000px',
             margin: '0 auto',
             padding: '20px',
             backgroundColor: modoOscuro ? '#1a202c' : '#f9f9f9',
@@ -100,9 +100,18 @@ export default function EstanciaPage() {
             width: '100%',
             zIndex: 1000,
             backgroundColor: modoOscuro ? '#1a202c' : '#f9f9f9',
-            paddingBottom: '10px',
-            paddingTop: '10px',
+            padding: '6px 16px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+        },
+        titulo: {
+            fontSize: '2rem',
+            fontWeight: '600',
+            textAlign: 'center',
+            color: modoOscuro ? '#edf2f7' : '#1a202c',
+            marginBottom: '24px',
         },
     };
 
@@ -111,7 +120,7 @@ export default function EstanciaPage() {
             ...styles.container,
             overflowY: 'auto',
             maxHeight: '100vh',
-            paddingTop: '120px', // espacio suficiente para el header fijo
+            paddingTop: '20px', // espacio suficiente para el header fijo
         },
     };
 
@@ -151,10 +160,22 @@ export default function EstanciaPage() {
     return (
         //<div style={styles.container}>
         <div style={scrollStyles.containerWithScroll}>
-            <div style={styles.fixedHeader}>
-                <Header title="Estancias" />
-            </div>
 
+            <IconButton
+                icon={modoOscuro ? <FaSun /> : <FaMoon />}
+                onClick={toggleColorMode}
+                aria-label="Toggle color mode"
+                variant="ghost"
+                size="md"
+                style={{
+                    position: 'fixed',
+                    top: 6,
+                    right: 16,
+                    zIndex: 1000,
+                }}
+            />
+
+            <h1 style={styles.titulo}>ESTANCIAS</h1>
 
             {error && <div style={styles.errorMessage}>{error}</div>}
 

@@ -3,7 +3,7 @@ import { getAllConnections } from "../api/connections.api";
 import { ConnectionCard } from "./ConnectionCard";
 import { Link } from "react-router-dom";
 import { useColorMode, IconButton, Flex } from "@chakra-ui/react";
-import { FaSun, FaMoon } from "react-icons/fa";
+import { FaSun, FaMoon, FaPlus, FaProjectDiagram } from "react-icons/fa";
 
 
 export function ConnectionsList() {
@@ -61,6 +61,13 @@ export function ConnectionsList() {
       opacity: deshabilitado ? 0.5 : 1,
       cursor: deshabilitado ? "default" : "pointer",
     }),
+    titulo: {
+      fontSize: "2rem",
+      fontWeight: "600",
+      textAlign: "center",
+      color: modoOscuro ? "#edf2f7" : "#1a202c",
+      marginBottom: "24px",
+    },
   };
 
   return (
@@ -74,14 +81,17 @@ export function ConnectionsList() {
           size="md"
         />
       </Flex>
-      <div className="mb-4">
+      <h1 style={estilos.titulo}>CONEXIONES</h1>
+      <div style={{ marginBottom: "20px", display: "flex", gap: "12px", flexWrap: "wrap" }}>
         <button style={estilos.botonCrear}>
           <Link to="/connection-create" style={estilos.linkCrear}>
+            <FaPlus style={{ marginRight: 8 }} />
             Create Connection
           </Link>
         </button>
         <button style={estilos.botonCrear}>
           <Link to="/graph" style={estilos.linkCrear}>
+            <FaProjectDiagram style={{ marginRight: 8 }} />
             Grafo de conexiones
           </Link>
         </button>

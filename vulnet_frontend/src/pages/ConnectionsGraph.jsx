@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { Graph } from "react-d3-graph";
 import { getDeviceModels } from "../api/devices.api";
 import { getConnectionGraph } from "../api/connections.api";
+import { useColorMode, IconButton, Flex } from "@chakra-ui/react";
+import { FaSun, FaMoon } from "react-icons/fa";
+import { Box, Text } from "@chakra-ui/react";
+
 
 export function ConnectionsGraph() {
   const [device_models, setDeviceModels] = useState([]);
@@ -11,6 +15,36 @@ export function ConnectionsGraph() {
 
   const [loading, setLoading] = useState(true); // State to track API call status
   const [secondloading, secondSetLoading] = useState(true); // State to track API call status
+  const { colorMode, toggleColorMode } = useColorMode();
+  const modoOscuro = colorMode === 'dark';
+
+  const scrollStyles = {
+    containerWithScroll: {
+      overflowY: "auto",
+      maxHeight: "100vh",
+      paddingTop: "120px", // espacio para header fijo
+      paddingX: "20px",     // margen lateral opcional
+      scrollbarWidth: "thin", // Firefox
+      "&::-webkit-scrollbar": {
+        width: "8px",
+      },
+      "&::-webkit-scrollbar-thumb": {
+        backgroundColor: "#a0aec0", // gris medio
+        borderRadius: "4px",
+      },
+      "&::-webkit-scrollbar-track": {
+        backgroundColor: "#edf2f7", // gris claro
+      },
+      _dark: {
+        "&::-webkit-scrollbar-thumb": {
+          backgroundColor: "#4A5568", // gris oscuro
+        },
+        "&::-webkit-scrollbar-track": {
+          backgroundColor: "#1A202C", // fondo oscuro
+        },
+      }
+    }
+  };
 
   useEffect(() => {
     async function loadDeviceModels() {
@@ -44,7 +78,9 @@ export function ConnectionsGraph() {
   }, []);
 
 
-  const nodes = device_models.map((name) => ({ id: name }));
+  // Show only devices that are part of at least one connection
+  const uniqueDeviceNames = Array.from(new Set([...connection_sources, ...connection_targets]));
+  const nodes = uniqueDeviceNames.map((name) => ({ id: name }));
   const links = connection_sources.map((source, index) => ({
     source,
     target: connection_targets[index],
@@ -57,7 +93,6 @@ export function ConnectionsGraph() {
   };
 
   const config = {
-
     directed: false,
     automaticRearrangeAfterDropNode: true,
     collapsible: false,
@@ -68,21 +103,21 @@ export function ConnectionsGraph() {
     minZoom: 0,
     width: window.innerWidth,
     height: window.innerHeight,
-    nodeHighlightBehavior: true, // comment this to reset nodes positions to work
+    nodeHighlightBehavior: true,
     panAndZoom: false,
     staticGraph: false,
     d3: {
       alphaTarget: 0.15,
       gravity: -800,
       linkLength: 250,
-      linkStrength: 1
+      linkStrength: 1,
     },
     node: {
-      color: "white",
-      fontColor: "white",
+      color: colorMode === "dark" ? "white" : "#222222",
+      fontColor: colorMode === "dark" ? "white" : "#222222",
       fontSize: 14,
       fontWeight: "normal",
-      highlightColor: "blue",
+      highlightColor: "#3b82f6", // azul
       highlightFontSize: 16,
       highlightFontWeight: "bold",
       highlightStrokeWidth: 1.5,
@@ -93,14 +128,14 @@ export function ConnectionsGraph() {
       strokeColor: "none",
       strokeWidth: 1.5,
       symbolType: "circle",
-      viewGenerator: null
+      viewGenerator: null,
     },
     link: {
-      color: "white",
-      fontColor: "white",
+      color: colorMode === "dark" ? "white" : "#555555",
+      fontColor: colorMode === "dark" ? "white" : "#555555",
       fontSize: 14,
       fontWeight: "normal",
-      highlightColor: "blue",
+      highlightColor: "#3b82f6",
       highlightFontSize: 16,
       highlightFontWeight: "bold",
       highlightStrokeWidth: 1.5,
@@ -114,10 +149,11 @@ export function ConnectionsGraph() {
       markerWidth: 6,
       strokeDasharray: 0,
       strokeDashoffset: 0,
-      strokeLinecap: "butt"
-
-    }
+      strokeLinecap: "butt",
+    },
+    backgroundColor: colorMode === "dark" ? "#0f111d" : "#ffffff",
   };
+
 
   const onClickNode = function (nodeId) {
     window.location.replace("/dashboard/" + nodeId);
@@ -128,18 +164,40 @@ export function ConnectionsGraph() {
   };
 
   return (
-    <>
+    <Box sx={scrollStyles.containerWithScroll}>
+      <Flex justifyContent="space-between" alignItems="center" mb={6}>
+        <Flex flex={1} justifyContent="center">
+          <Text
+            fontSize="2xl"
+            fontWeight="semibold"
+            color="gray.900"
+            _dark={{ color: "white" }}
+          >
+            Grafo de Conexiones
+          </Text>
+        </Flex>
+        <IconButton
+          icon={modoOscuro ? <FaSun /> : <FaMoon />}
+          onClick={toggleColorMode}
+          aria-label="Toggle color mode"
+          variant="ghost"
+          size="md"
+        />
+      </Flex>
+
       {loading && secondloading ? (
         <div>Loading...</div>
       ) : (
-        <Graph
-          id="graph-id"
-          data={graph_data}
-          config={config}
-          onClickNode={onClickNode}
-          onClickLink={onClickLink}
-        />
+        <Flex justifyContent="center">
+          <Graph
+            id="graph-id"
+            data={graph_data}
+            config={config}
+            onClickNode={onClickNode}
+            onClickLink={onClickLink}
+          />
+        </Flex>
       )}
-    </>
+    </Box>
   );
 }

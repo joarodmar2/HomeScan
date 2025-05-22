@@ -307,7 +307,15 @@ export default function Dashboard() {
       padding: '16px',
       borderRadius: '12px',
       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-    }
+    },
+    pageTitle: {
+      fontSize: '2.5rem',
+      fontWeight: '700',
+      textAlign: 'center',
+      marginTop: '24px',
+      marginBottom: '24px',
+      color: modoOscuro ? '#edf2f7' : '#1a202c',
+    },
   };
 
   // Procesamiento de datos para el gráfico de barras apiladas
@@ -396,6 +404,19 @@ export default function Dashboard() {
     <Box style={styles.containerWithScroll}>
       <Box minH="100vh" bg={bgColor}>
 
+        <Box display="flex" justifyContent="flex-end" px={4} pt={2}>
+          <IconButton
+            aria-label="Alternar modo claro/oscuro"
+            icon={colorMode === 'light' ? <FaMoon /> : <FaSun />}
+            onClick={toggleColorMode}
+            variant="ghost"
+            size="md"
+            minW="auto"
+            p={0}
+            borderRadius="none"
+          />
+        </Box>
+
         <Drawer
           isOpen={isOpen}
           placement="left"
@@ -411,64 +432,8 @@ export default function Dashboard() {
           </DrawerContent>
         </Drawer>
 
-        {/* Header */}
-        {/* Nueva cabecera para el título y logo de la app */}
-        <Flex
-          height="16"
-          alignItems="center"
-          justifyContent="center"
-          flexDirection="row"
-          gap={3}
-          bg={useColorModeValue("white", "transparent")}
-        >
-          <Image
-            src="/logo/logo.png"
-            alt="Logo de la App"
-            height="20"
-            onLoad={() => console.log("✅ Imagen cargada correctamente")}
-            onError={(e) => console.error("❌ Error cargando imagen:", e)}
-          />
-          <Heading size="2xl" fontWeight="bold" textAlign="center" style={styles.headerTitle}>
-            Home Scan
-          </Heading>
-        </Flex>
 
-        <Flex
-          ml={{ base: 0, md: 0 }}
-          px={4}
-          height="20"
-          alignItems="center"
-          bg={cardBg}
-          borderBottomWidth="1px"
-          borderBottomColor={useColorModeValue("gray.200", "gray.700")}
-          justifyContent="space-between"
-          style={styles.headerBar}
-        >
-          <IconButton
-            display={{ base: "flex", md: "none" }}
-            onClick={onOpen}
-            variant="outline"
-            aria-label="open menu"
-            icon={<FiMenu />}
-          />
-
-          <Heading size="lg" fontWeight="semibold">
-            Dashboard
-          </Heading>
-
-          <HStack spacing={4}>
-
-            <IconButton
-              aria-label="Alternar modo claro/oscuro"
-              icon={colorMode === 'light' ? <FaMoon /> : <FaSun />}
-              onClick={toggleColorMode}
-              variant="ghost"
-              size="md"
-            />
-
-
-          </HStack>
-        </Flex>
+        <Heading style={styles.pageTitle}>DASHBOARD</Heading>
 
         {/* Main Content */}
         <Box ml={{ base: 0, md: 0 }} p={4}>

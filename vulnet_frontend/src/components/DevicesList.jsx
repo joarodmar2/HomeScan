@@ -50,6 +50,13 @@ export function DevicesList() {
       textDecoration: "none",
       color: "inherit",
     },
+    titulo: {
+      fontSize: "2rem",
+      fontWeight: "600",
+      textAlign: "center",
+      color: modoOscuro ? "#edf2f7" : "#1a202c",
+      marginBottom: "24px",
+    },
     paginacionContenedor: {
       color: modoOscuro ? "#e2e8f0" : "#1a202c",
       fontSize: "16px",
@@ -77,10 +84,11 @@ export function DevicesList() {
           icon={modoOscuro ? <FaSun /> : <FaMoon />}
           onClick={toggleColorMode}
           aria-label="Toggle color mode"
-          isRound
+          variant="ghost"
           size="md"
         />
       </Flex>
+      <h1 style={estilos.titulo}>DISPOSITIVOS</h1>
       <button style={estilos.botonCrear}>
         <Link to="/device-create" style={estilos.linkCrear}>
           Create Device
