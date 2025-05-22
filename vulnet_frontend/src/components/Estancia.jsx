@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Wifi, Bluetooth, Network, Radio, Plug, Cable, ChevronUp, Trash2, Info } from "lucide-react"
+import { FaEye } from "react-icons/fa";
 import { useNavigate } from "react-router-dom"
 
 export default function Estancia({ estancia, onDelete, modoOscuro }) {
@@ -113,7 +114,7 @@ export default function Estancia({ estancia, onDelete, modoOscuro }) {
             border: `1px solid ${theme.border}`,
             borderRadius: "12px",
             padding: "20px",
-            backgroundColor: theme.cardBg,
+            backgroundColor: modoOscuro ? "#171923" : theme.cardBg,
             color: theme.text,
             transition: "all 0.3s ease",
             boxShadow: modoOscuro ? "0 4px 12px rgba(0,0,0,0.3)" : "0 4px 12px rgba(0,0,0,0.08)",
@@ -150,14 +151,15 @@ export default function Estancia({ estancia, onDelete, modoOscuro }) {
             marginTop: "16px",
         },
         deviceSectionTitle: {
-            fontSize: "14px",
-            fontWeight: "100",
+            fontSize: "16px",
+            fontWeight: "600",
             marginBottom: "12px",
             display: "flex",
             alignItems: "center",
-            color: theme.textSecondary,
-            textTransform: "uppercase",
-            letterSpacing: "0.5px",
+            color: theme.text,
+            textTransform: "none",
+            letterSpacing: "0.25px",
+            fontFamily: "'Inter', 'Segoe UI', Roboto, sans-serif",
         },
         deviceList: {
             margin: "0",
@@ -170,7 +172,7 @@ export default function Estancia({ estancia, onDelete, modoOscuro }) {
         deviceItem: {
             padding: "12px 16px",
             borderRadius: "10px",
-            backgroundColor: theme.itemBg,
+            backgroundColor: modoOscuro ? "#202a44" : theme.itemBg,
             display: "flex",
             flexDirection: "column",
             gap: "8px",
@@ -438,7 +440,7 @@ export default function Estancia({ estancia, onDelete, modoOscuro }) {
                         navigate(`/estancia/${estancia.nombreEstancia || estancia.nombre}/modelado`)
                     }
                 >
-                    <Info size={16} /> Ir al modelado
+                    <FaEye size={16} /> Ir al modelado
                 </button>
                 <button
                     style={{ ...styles.button, ...styles.deleteButton }}

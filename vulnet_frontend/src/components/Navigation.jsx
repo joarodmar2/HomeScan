@@ -8,6 +8,9 @@ import {
   Divider,
   useColorModeValue
 } from "@chakra-ui/react";
+import { Image } from '@chakra-ui/react';
+import { Space } from "lucide-react";
+
 import {
   FiCpu,
   FiLink,
@@ -37,9 +40,15 @@ export function Navigation({ onClose, ...rest }) {
     >
       <Flex h="20" alignItems="center" mx="8" justifyContent="space-between">
         <Flex alignItems="center">
-          <Text fontSize="2xl" fontWeight="bold" ml="2">
-            DataViz
-          </Text>
+
+
+          <Image
+            src="/logo/logo.png"
+            alt="Logo de la App"
+            height="100"
+            onLoad={() => console.log("✅ Imagen cargada correctamente")}
+            onError={(e) => console.error("❌ Error cargando imagen:", e)}
+          />
         </Flex>
         <IconButton
           display={{ base: "flex", md: "none" }}
@@ -51,7 +60,10 @@ export function Navigation({ onClose, ...rest }) {
       </Flex>
 
       <VStack spacing={4} align="stretch" px={4}>
+        <Box height="2" />
         <Box>
+
+
           <Text fontWeight="bold" mb={2} fontSize="sm" color="gray.500">
             MENÚ PRINCIPAL
           </Text>

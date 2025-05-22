@@ -21,7 +21,7 @@ export default function EstanciaPage() {
             maxWidth: '1200px',
             margin: '0 auto',
             padding: '20px',
-            backgroundColor: modoOscuro ? '#121212' : '#f9f9f9',
+            backgroundColor: modoOscuro ? '#1a202c' : '#f9f9f9',
             minHeight: '100vh',
             color: modoOscuro ? '#fff' : '#000',
             transition: 'background-color 0.3s ease',
@@ -34,9 +34,9 @@ export default function EstanciaPage() {
         },
         refreshButton: {
             padding: '8px 16px',
-            backgroundColor: '#6366f1',
+            backgroundColor: modoOscuro ? '#1a202c' : '#6366f1',
             color: '#fff',
-            border: 'none',
+            border: modoOscuro ? '1px solid #fff' : 'none',
             borderRadius: '6px',
             cursor: 'pointer',
             fontWeight: 'bold',
@@ -58,7 +58,7 @@ export default function EstanciaPage() {
             border: '1px solid #333',
             borderRadius: '8px',
             padding: '16px',
-            backgroundColor: modoOscuro ? '#1e1e1e' : '#f0f0f0',
+            backgroundColor: modoOscuro ? '#112240' : '#f0f0f0',
         },
         skeletonLine: {
             height: '16px',
@@ -88,18 +88,30 @@ export default function EstanciaPage() {
         emptyMessage: {
             padding: '24px',
             textAlign: 'center',
-            backgroundColor: modoOscuro ? '#1e1e1e' : '#fff',
+            backgroundColor: modoOscuro ? '#112240' : '#fff',
             border: '1px solid #333',
             borderRadius: '8px',
-            color: modoOscuro ? '#ccc' : '#666',
+            color: modoOscuro ? '#e0e0e0' : '#666',
+        },
+        fixedHeader: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            zIndex: 1000,
+            backgroundColor: modoOscuro ? '#1a202c' : '#f9f9f9',
+            paddingBottom: '10px',
+            paddingTop: '10px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         },
     };
 
     const scrollStyles = {
         containerWithScroll: {
-            ...styles.container, // Mantiene todos los estilos originales del contenedor
-            overflowY: 'auto',   // Habilita el scroll vertical
-            maxHeight: '100vh', // Limita la altura al tamaño de la ventana
+            ...styles.container,
+            overflowY: 'auto',
+            maxHeight: '100vh',
+            paddingTop: '120px', // espacio suficiente para el header fijo
         },
     };
 
@@ -139,7 +151,9 @@ export default function EstanciaPage() {
     return (
         //<div style={styles.container}>
         <div style={scrollStyles.containerWithScroll}>
-            <Header title="Estancias" />
+            <div style={styles.fixedHeader}>
+                <Header title="Estancias" />
+            </div>
 
 
             {error && <div style={styles.errorMessage}>{error}</div>}

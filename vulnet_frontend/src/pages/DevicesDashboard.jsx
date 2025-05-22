@@ -3,6 +3,7 @@ import BubbleChart from "../components/Charts/BubbleChart";
 import TightBubbleChart from "../components/Charts/TightBubbleChart";
 import PolicyBubbleChart from "../components/Charts/PolicyBubbleChart";
 import axios from "axios";
+import { Image } from '@chakra-ui/react';
 import {
   Box,
   Flex,
@@ -233,6 +234,7 @@ const mockSeveritySummary = {
 export default function Dashboard() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { colorMode, toggleColorMode } = useColorMode();
+  const modoOscuro = colorMode === "dark";
   const bgColor = useColorModeValue("gray.50", "gray.900");
   const cardBg = useColorModeValue("white", "gray.800");
   const legendTextColor = useColorModeValue('#2D3748', '#FFFFFF');
@@ -283,11 +285,29 @@ export default function Dashboard() {
 
   const styles = {
     containerWithScroll: {
-      overflowY: 'auto',   // Habilita el scroll vertical
-      maxHeight: '100vh',  // Limita la altura al tamaño de la ventana
-      padding: '20px',     // Espaciado interno para que el contenido no quede pegado a los bordes
+      overflowY: 'auto',
+      maxHeight: '100vh',
+      padding: '20px',
       boxSizing: 'border-box',
+      backgroundColor: modoOscuro ? '#1a202c' : '#f9f9f9',
+      color: modoOscuro ? '#fff' : '#000',
     },
+    headerTitle: {
+      fontFamily: "'Inter', 'Segoe UI', sans-serif",
+      fontWeight: 'bold',
+      fontSize: '2rem',
+      color: modoOscuro ? '#fff' : '#1a202c',
+    },
+    headerBar: {
+      backgroundColor: modoOscuro ? '#2d3748' : '#fff',
+      borderBottomColor: modoOscuro ? '#4A5568' : '#E2E8F0',
+    },
+    cardBox: {
+      backgroundColor: modoOscuro ? '#2D3748' : '#fff',
+      padding: '16px',
+      borderRadius: '12px',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+    }
   };
 
   // Procesamiento de datos para el gráfico de barras apiladas
@@ -394,22 +414,27 @@ export default function Dashboard() {
         {/* Header */}
         {/* Nueva cabecera para el título y logo de la app */}
         <Flex
-          bg={useColorModeValue("gray.100", "gray.800")}
-          color={useColorModeValue("gray.700", "gray.200")}
-          px={4}
           height="16"
           alignItems="center"
-          justifyContent="center" // Centra los elementos horizontalmente
-          flexDirection="column" // Centra los elementos verticalmente si hay varios
+          justifyContent="center"
+          flexDirection="row"
+          gap={3}
+          bg={useColorModeValue("white", "transparent")}
         >
-          {/* Aquí puedes añadir el logo de tu app */}
-          {/* Ejemplo: */}
-          {/* <Image src="/ruta/a/tu/logo.png" alt="Logo de la App" height="10" mb={2} /> */}
-          <Heading size="2xl" fontWeight="bold" textAlign="center">Nombre de tu App</Heading>
+          <Image
+            src="/logo/logo.png"
+            alt="Logo de la App"
+            height="20"
+            onLoad={() => console.log("✅ Imagen cargada correctamente")}
+            onError={(e) => console.error("❌ Error cargando imagen:", e)}
+          />
+          <Heading size="2xl" fontWeight="bold" textAlign="center" style={styles.headerTitle}>
+            Home Scan
+          </Heading>
         </Flex>
 
         <Flex
-          ml={{ base: 0, md: 60 }}
+          ml={{ base: 0, md: 0 }}
           px={4}
           height="20"
           alignItems="center"
@@ -417,6 +442,7 @@ export default function Dashboard() {
           borderBottomWidth="1px"
           borderBottomColor={useColorModeValue("gray.200", "gray.700")}
           justifyContent="space-between"
+          style={styles.headerBar}
         >
           <IconButton
             display={{ base: "flex", md: "none" }}
@@ -445,7 +471,7 @@ export default function Dashboard() {
         </Flex>
 
         {/* Main Content */}
-        <Box ml={{ base: 0, md: 60 }} p={4}>
+        <Box ml={{ base: 0, md: 0 }} p={4}>
           <Tabs colorScheme="blue" mb={6}>
 
             <TabPanels>
