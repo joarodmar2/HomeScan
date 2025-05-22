@@ -2,11 +2,16 @@ import { useEffect, useState } from "react";
 import { getAllDevices } from "../api/devices.api";
 import { DeviceCard } from "./DeviceCard";
 import { Link } from "react-router-dom";
+import { useColorMode, IconButton, Flex } from "@chakra-ui/react";
+import { FaSun, FaMoon } from "react-icons/fa";
 
 export function DevicesList() {
   const [devices, setDevices] = useState([]);
   const [paginaActual, setPaginaActual] = useState(1);
   const dispositivosPorPagina = 24;
+
+  const { colorMode, toggleColorMode } = useColorMode();
+  const modoOscuro = colorMode === "dark";
 
   useEffect(() => {
     async function loadDevices() {
@@ -26,9 +31,12 @@ export function DevicesList() {
   const estilos = {
     contenedor: {
       padding: "20px",
+      backgroundColor: modoOscuro ? "#1a202c" : "#f9f9f9",
+      color: modoOscuro ? "#edf2f7" : "#1a202c",
+      minHeight: "100vh",
     },
     botonCrear: {
-      backgroundColor: "#2a3a5a",
+      backgroundColor: modoOscuro ? "#2d3748" : "#2a3a5a",
       padding: "10px 20px",
       borderRadius: "8px",
       color: "white",
@@ -36,13 +44,14 @@ export function DevicesList() {
       marginBottom: "20px",
       border: "1px solid #3a4a6a",
       boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+      whiteSpace: "nowrap",
     },
     linkCrear: {
       textDecoration: "none",
       color: "inherit",
     },
     paginacionContenedor: {
-      color: "#e2e8f0",
+      color: modoOscuro ? "#e2e8f0" : "#1a202c",
       fontSize: "16px",
       marginTop: "32px",
       display: "flex",
@@ -51,7 +60,7 @@ export function DevicesList() {
     },
     botonPaginacion: (deshabilitado) => ({
       padding: "10px 16px",
-      backgroundColor: "#2a3a5a",
+      backgroundColor: modoOscuro ? "#2d3748" : "#2a3a5a",
       color: "white",
       borderRadius: "6px",
       border: "1px solid #3a4a6a",
@@ -60,8 +69,18 @@ export function DevicesList() {
     }),
   };
 
+
   return (
     <div style={estilos.contenedor}>
+      <Flex justifyContent="flex-end" marginBottom="16px">
+        <IconButton
+          icon={modoOscuro ? <FaSun /> : <FaMoon />}
+          onClick={toggleColorMode}
+          aria-label="Toggle color mode"
+          isRound
+          size="md"
+        />
+      </Flex>
       <button style={estilos.botonCrear}>
         <Link to="/device-create" style={estilos.linkCrear}>
           Create Device

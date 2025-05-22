@@ -18,7 +18,7 @@ export const createConnection = (connection) => connectionsApi.post("/createconn
 
 export const updateConnection = (id, connection) => connectionsApi.put(`/updateconnection/${id}/`, connection);
 
-export const deleteConnection = (id) => connectionsApi.delete(`/connections/${id}`);
+export const deleteConnection = (id) => connectionsApi.delete(`/connections/${id}/`);
 
 export const getConnectionProtocols = () => connectionsApi.get("/connectionprotocols/");
 

@@ -213,6 +213,7 @@ class ConnectionView(viewsets.ModelViewSet):
     serializer_class = ConnectionSerializer
     queryset = Connection.objects.all()
 
+
 class ConnectionVulnerabilityView(viewsets.ModelViewSet):
     serializer_class = ConnectionVulnerabilitySerializer
     queryset = ConnectionVulnerability.objects.all()

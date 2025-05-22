@@ -5,6 +5,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "coreapi": "^0.0.3",
-    "framer-motion": "^12.9.1"
+    "framer-motion": "^12.9.1",
+    "react-select": "^5.10.1"
   }
 }
