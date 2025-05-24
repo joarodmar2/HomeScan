@@ -1,30 +1,32 @@
-Installation
-Clone the repository:
+## 🚀 Installation Guide
+
+### 🧱 Clone the Repository
+
+```bash
 git clone https://github.com/IDEA-Research-Group/alba-assistant.git
 cd alba-assistant
-Create a virtual environment for the backend:
-python -m venv venv
-Activate the virtual environment:
-On Windows:
+🐍 Backend Setup (Django + REST API)
 
+1️⃣ Create and Activate Virtual Environment
+
+Windows: python -m venv venv
 .\venv\Scripts\activate
-On macOS/Linux:
 
+macOS/Linux:
+python -m venv venv
 source venv/bin/activate
-Backend Setup
-Run migrations:
-python manage.py migrate
-Start the server:
-python manage.py runserver
-The backend will be available at http://localhost:8000.
 
-Rest-API: http://localhost:8000/vulnet/api/v1/
 
-Frontend Setup
-Navigate to the frontend directory:
-cd vulnet_frontend
-Install frontend dependencies:
-npm install
-Start the React application:
- npm run dev
-The frontend will be available at http://localhost:5173.
+2️⃣ Run Migrations: python manage.py migrate
+
+3️⃣ Start the Development Server: python manage.py runserver
+
+💻 Frontend Setup (React + Vite)
+
+1️⃣ Navigate to Frontend Directory: cd vulnet_frontend
+
+2️⃣ Install Dependencies: npm install
+
+3️⃣ Start React Dev Server: npm run dev
+
+🌐 Frontend is now available at: http://localhost:5173
