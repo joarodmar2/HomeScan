@@ -1,8 +1,8 @@
 // "use client"
 
 import { useEffect, useState } from "react"
-import { Wifi, Bluetooth, Network, Radio, Plug, Cable, ChevronUp, Trash2, Info } from "lucide-react"
-import { FaEye } from "react-icons/fa";
+import { Wifi, Bluetooth, Network, Radio, Plug, Cable, Trash2 } from "lucide-react"
+import { FaEye } from "react-icons/fa"
 import { useNavigate } from "react-router-dom"
 
 export default function Estancia({ estancia, onDelete, modoOscuro }) {
@@ -10,21 +10,33 @@ export default function Estancia({ estancia, onDelete, modoOscuro }) {
     const [conexionesPorDispositivo, setConexionesPorDispositivo] = useState({})
     const [isLoading, setIsLoading] = useState(true)
     const [showDetails, setShowDetails] = useState(false)
+    const [isHovered, setIsHovered] = useState(false)
     const navigate = useNavigate()
 
-    // Colores del tema
+    // Paleta de colores moderna y legible para modo oscuro
     const theme = {
-        bg: modoOscuro ? "#1e1e1e" : "#ffffff",
-        cardBg: modoOscuro ? "#252525" : "#ffffff",
-        text: modoOscuro ? "#e0e0e0" : "#333333",
-        textSecondary: modoOscuro ? "#a0a0a0" : "#6c757d",
-        border: modoOscuro ? "#333333" : "#e0e0e0",
-        itemBg: modoOscuro ? "#2a2a2a" : "#f5f5f5",
-        accent: modoOscuro ? "#3a86ff" : "#0070f3",
-        danger: "#d32f2f",
-        success: "#4caf50",
-        info: "#2196f3",
-        warning: "#ff9800",
+        bg: modoOscuro ? "#0D1117" : "#fafbfc",
+        cardBg: modoOscuro ? "#161B22" : "#ffffff",
+        text: modoOscuro ? "#C9D1D9" : "#1a202c",
+        textSecondary: modoOscuro ? "#8B949E" : "#64748b",
+        border: modoOscuro ? "#30363D" : "#e2e8f0",
+        itemBg: modoOscuro ? "#21262D" : "#f8fafc",
+        accent: modoOscuro ? "#58A6FF" : "#3b82f6",
+        accentHover: modoOscuro ? "#79C0FF" : "#2563eb",
+        danger: "#ef4444",
+        dangerHover: "#dc2626",
+        success: "#10b981",
+        info: "#06b6d4",
+        warning: "#f59e0b",
+        gradient: modoOscuro
+            ? "linear-gradient(135deg, #161B22 0%, #21262D 100%)"
+            : "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+        shadow: modoOscuro
+            ? "0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2)"
+            : "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+        shadowHover: modoOscuro
+            ? "0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 8px 12px -4px rgba(0, 0, 0, 0.3)"
+            : "0 20px 40px -10px rgba(0, 0, 0, 0.15), 0 8px 12px -4px rgba(0, 0, 0, 0.1)",
     }
 
     useEffect(() => {
@@ -68,15 +80,17 @@ export default function Estancia({ estancia, onDelete, modoOscuro }) {
 
         fetchInfo()
     }, [estancia.id, estancia.dispositivos])
+
     const iconoConexion = (tipo) => {
         const clean = tipo.toLowerCase().replace(/[^a-z0-9]/g, "")
         const iconProps = {
-            size: 18,
-            strokeWidth: 1.5,
+            size: 16,
+            strokeWidth: 2,
             style: {
                 verticalAlign: "middle",
-                marginRight: "4px",
+                marginRight: "6px",
                 color: getConnectionColor(tipo),
+                filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.1))",
             },
         }
 
@@ -93,12 +107,12 @@ export default function Estancia({ estancia, onDelete, modoOscuro }) {
 
         const clean = type.toLowerCase().replace(/[^a-z0-9]/g, "")
         const colors = {
-            wifi: "#4caf50",
-            bluetooth: "#2196f3",
-            ethernet: "#ff9800",
-            usb: "#9c27b0",
-            zigbee: "#00bcd4",
-            zwave: "#673ab7",
+            wifi: "#10b981",
+            bluetooth: "#3b82f6",
+            ethernet: "#f59e0b",
+            usb: "#8b5cf6",
+            zigbee: "#06b6d4",
+            zwave: "#6366f1",
         }
 
         for (const [key, value] of Object.entries(colors)) {
@@ -108,85 +122,102 @@ export default function Estancia({ estancia, onDelete, modoOscuro }) {
         return theme.textSecondary
     }
 
-    // Estilos mejorados
+    // Estilos mejorados con más sofisticación visual
     const styles = {
         card: {
             border: `1px solid ${theme.border}`,
-            borderRadius: "12px",
-            padding: "20px",
-            backgroundColor: modoOscuro ? "#171923" : theme.cardBg,
+            borderRadius: "20px",
+            padding: "28px",
+            background: theme.gradient,
             color: theme.text,
-            transition: "all 0.3s ease",
-            boxShadow: modoOscuro ? "0 4px 12px rgba(0,0,0,0.3)" : "0 4px 12px rgba(0,0,0,0.08)",
+            transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+            boxShadow: isHovered ? theme.shadowHover : theme.shadow,
             position: "relative",
             overflow: "hidden",
+            backdropFilter: "blur(10px)",
+            transform: isHovered ? "translateY(-4px)" : "translateY(0)",
+        },
+        cardOverlay: {
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "4px",
+            background: `linear-gradient(90deg, ${theme.accent}, ${getConnectionColor("wifi")}, ${getConnectionColor("bluetooth")})`,
+            borderRadius: "20px 20px 0 0",
         },
         header: {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-start",
-            marginBottom: "16px",
-            borderBottom: `1px solid ${theme.border}`,
-            paddingBottom: "12px",
+            marginBottom: "24px",
+            paddingBottom: "20px",
+            borderBottom: `2px solid ${theme.border}`,
+            position: "relative",
         },
         title: {
-            fontSize: "24px",
-            fontWeight: "700",
-            margin: "0 0 4px 0",
-            color: theme.text,
-            fontFamily: "'Segoe UI', system-ui, -apple-system, Roboto, sans-serif",
-            letterSpacing: "-0.5px",
+            fontSize: "28px",
+            fontWeight: "800",
+            margin: "0 0 8px 0",
+            color: modoOscuro ? "#8CD3E0" : "#1A202C",
+            fontFamily: "'Inter', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif",
+            letterSpacing: "-0.8px",
+            lineHeight: "1.2",
         },
         deviceCount: {
-            display: "inline-block",
-            padding: "4px 10px",
-            backgroundColor: theme.accent + "20",
+            display: "inline-flex",
+            alignItems: "center",
+            padding: "8px 16px",
+            background: `linear-gradient(135deg, ${theme.accent}20, ${theme.accent}10)`,
             color: theme.accent,
-            borderRadius: "12px",
-            fontSize: "12px",
-            fontWeight: "500",
-            marginTop: "8px",
+            borderRadius: "20px",
+            fontSize: "13px",
+            fontWeight: "600",
+            marginTop: "12px",
+            border: `1px solid ${theme.accent}30`,
+            backdropFilter: "blur(10px)",
+            boxShadow: `0 4px 12px ${theme.accent}20`,
         },
         deviceSection: {
-            marginTop: "16px",
+            marginTop: "24px",
         },
         deviceSectionTitle: {
-            fontSize: "16px",
-            fontWeight: "600",
-            marginBottom: "12px",
+            fontSize: "18px",
+            fontWeight: "700",
+            marginBottom: "16px",
             display: "flex",
             alignItems: "center",
             color: theme.text,
-            textTransform: "none",
-            letterSpacing: "0.25px",
             fontFamily: "'Inter', 'Segoe UI', Roboto, sans-serif",
+            letterSpacing: "-0.3px",
         },
         deviceList: {
             margin: "0",
             padding: "0",
             listStyle: "none",
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-            gap: "12px",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: "16px",
         },
         deviceItem: {
-            padding: "12px 16px",
-            borderRadius: "10px",
-            backgroundColor: modoOscuro ? "#202a44" : theme.itemBg,
+            padding: "20px",
+            borderRadius: "16px",
+            background: `linear-gradient(135deg, ${theme.itemBg}, ${modoOscuro ? "#2a2d5a" : "#f1f5f9"})`,
             display: "flex",
             flexDirection: "column",
-            gap: "8px",
-            transition: "transform 0.2s ease, box-shadow 0.2s ease",
+            gap: "12px",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             border: `1px solid ${theme.border}`,
-            ":hover": {
-                transform: "translateY(-2px)",
-                boxShadow: modoOscuro ? "0 6px 12px rgba(0,0,0,0.2)" : "0 6px 12px rgba(0,0,0,0.1)",
-            },
+            position: "relative",
+            overflow: "hidden",
+            backdropFilter: "blur(5px)",
         },
         deviceModel: {
-            fontWeight: "500",
-            fontSize: "15px",
+            fontWeight: "600",
+            fontSize: "16px",
             color: theme.text,
+            letterSpacing: "-0.2px",
+            lineHeight: "1.3",
         },
         connectionTags: {
             display: "flex",
@@ -196,177 +227,223 @@ export default function Estancia({ estancia, onDelete, modoOscuro }) {
         connectionTag: (type) => ({
             display: "inline-flex",
             alignItems: "center",
-            padding: "4px 10px",
-            borderRadius: "12px",
+            padding: "6px 12px",
+            borderRadius: "16px",
             fontSize: "12px",
-            fontWeight: "500",
-            backgroundColor: getConnectionColor(type) + (modoOscuro ? "20" : "15"),
+            fontWeight: "600",
+            background: `linear-gradient(135deg, ${getConnectionColor(type)}15, ${getConnectionColor(type)}08)`,
             color: getConnectionColor(type),
-            border: `1px solid ${getConnectionColor(type) + "40"}`,
+            border: `1px solid ${getConnectionColor(type)}30`,
+            backdropFilter: "blur(5px)",
+            transition: "all 0.2s ease",
+            boxShadow: `0 2px 8px ${getConnectionColor(type)}20`,
         }),
         buttonContainer: {
             display: "flex",
             justifyContent: "space-between",
-            marginTop: "24px",
-            gap: "12px",
+            marginTop: "32px",
+            gap: "16px",
         },
         button: {
-            padding: "10px 16px",
-            borderRadius: "8px",
-            fontWeight: "500",
+            padding: "14px 20px",
+            borderRadius: "12px",
+            fontWeight: "600",
             cursor: "pointer",
             border: "none",
-            transition: "all 0.2s ease",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             flex: "1",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            gap: "8px",
+            gap: "10px",
             fontSize: "14px",
+            letterSpacing: "-0.1px",
+            position: "relative",
+            overflow: "hidden",
+            backdropFilter: "blur(10px)",
         },
         showButton: {
-            backgroundColor: theme.accent + "15",
+            background: `linear-gradient(135deg, ${theme.accent}15, ${theme.accent}08)`,
             color: theme.accent,
-            border: `1px solid ${theme.accent}30`,
-            ":hover": {
-                backgroundColor: theme.accent + "25",
-            },
+            border: `1px solid ${theme.accent}40`,
+            boxShadow: `0 4px 12px ${theme.accent}20`,
         },
         deleteButton: {
-            backgroundColor: theme.danger + "15",
+            background: `linear-gradient(135deg, ${theme.danger}15, ${theme.danger}08)`,
             color: theme.danger,
-            border: `1px solid ${theme.danger}30`,
-            ":hover": {
-                backgroundColor: theme.danger + "25",
-            },
+            border: `1px solid ${theme.danger}40`,
+            boxShadow: `0 4px 12px ${theme.danger}20`,
         },
         loadingContainer: {
-            padding: "30px 0",
+            padding: "40px 0",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
             flexDirection: "column",
-            gap: "12px",
-            backgroundColor: theme.itemBg,
-            borderRadius: "10px",
+            gap: "16px",
+            background: `linear-gradient(135deg, ${theme.itemBg}, ${modoOscuro ? "#2a2d5a" : "#f1f5f9"})`,
+            borderRadius: "16px",
+            border: `1px solid ${theme.border}`,
+            backdropFilter: "blur(5px)",
         },
         loadingText: {
             fontSize: "14px",
             color: theme.textSecondary,
+            fontWeight: "500",
         },
         loadingDots: {
             display: "flex",
-            gap: "6px",
-        },
-        loadingDot: {
-            width: "10px",
-            height: "10px",
-            borderRadius: "50%",
-            backgroundColor: theme.accent,
-            opacity: 0.6,
-            animation: "pulse 1.5s infinite ease-in-out",
+            gap: "8px",
         },
         subtitle: {
-            fontSize: "14px",
+            fontSize: "15px",
             color: theme.textSecondary,
-            margin: "0 0 8px 0",
-            fontWeight: "400",
+            margin: "0 0 12px 0",
+            fontWeight: "500",
             fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
         },
         noDevices: {
-            padding: "20px",
+            padding: "32px",
             textAlign: "center",
             color: theme.textSecondary,
-            backgroundColor: theme.itemBg,
-            borderRadius: "10px",
-            fontSize: "14px",
-            border: `1px dashed ${theme.border}`,
+            background: `linear-gradient(135deg, ${theme.itemBg}, ${modoOscuro ? "#2a2d5a" : "#f1f5f9"})`,
+            borderRadius: "16px",
+            fontSize: "15px",
+            border: `2px dashed ${theme.border}`,
+            fontWeight: "500",
+            backdropFilter: "blur(5px)",
         },
         detailsContainer: {
-            marginTop: "20px",
-            padding: "16px",
-            backgroundColor: theme.itemBg,
-            borderRadius: "10px",
+            marginTop: "24px",
+            padding: "20px",
+            background: `linear-gradient(135deg, ${theme.itemBg}, ${modoOscuro ? "#2a2d5a" : "#f1f5f9"})`,
+            borderRadius: "16px",
             fontSize: "14px",
             display: showDetails ? "block" : "none",
-            animation: "fadeIn 0.3s ease",
+            animation: "fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
             border: `1px solid ${theme.border}`,
+            backdropFilter: "blur(5px)",
         },
         detailRow: {
             display: "flex",
             justifyContent: "space-between",
-            padding: "10px 0",
+            padding: "12px 0",
             borderBottom: `1px solid ${theme.border}`,
         },
         detailLabel: {
-            fontWeight: "500",
+            fontWeight: "600",
             color: theme.textSecondary,
         },
         detailValue: {
-            fontWeight: "500",
+            fontWeight: "600",
             color: theme.text,
-        },
-        iconContainer: {
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
         },
     }
 
-    // Crear un estilo para la animación de carga
+    // Crear un estilo para las animaciones mejoradas
     useEffect(() => {
         const loadingStyle = document.createElement("style")
         loadingStyle.innerHTML = `
             @keyframes pulse {
-                0%, 100% { opacity: 0.4; transform: scale(0.8); }
-                50% { opacity: 1; transform: scale(1); }
+                0%, 100% { 
+                    opacity: 0.4; 
+                    transform: scale(0.8); 
+                    background-color: ${theme.accent}60;
+                }
+                50% { 
+                    opacity: 1; 
+                    transform: scale(1.1); 
+                    background-color: ${theme.accent};
+                }
             }
             @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(10px); }
-                to { opacity: 1; transform: translateY(0); }
+                from { 
+                    opacity: 0; 
+                    transform: translateY(20px) scale(0.95); 
+                }
+                to { 
+                    opacity: 1; 
+                    transform: translateY(0) scale(1); 
+                }
+            }
+            @keyframes shimmer {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
             }
             .loading-dot {
-                width: 10px;
-                height: 10px;
+                width: 12px;
+                height: 12px;
                 border-radius: 50%;
-                background-color: ${theme.accent};
-                margin: 0 3px;
+                background: linear-gradient(135deg, ${theme.accent}, ${getConnectionColor("wifi")});
+                margin: 0 4px;
                 display: inline-block;
-                animation: pulse 1.5s infinite ease-in-out;
+                animation: pulse 1.8s infinite ease-in-out;
+                box-shadow: 0 2px 8px ${theme.accent}40;
             }
             .loading-dot:nth-child(2) {
-                animation-delay: 0.2s;
+                animation-delay: 0.3s;
             }
             .loading-dot:nth-child(3) {
-                animation-delay: 0.4s;
+                animation-delay: 0.6s;
             }
             .device-item {
-                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
             .device-item:hover {
+                transform: translateY(-4px) scale(1.02);
+                box-shadow: 0 12px 24px ${modoOscuro ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.12)"};
+                border-color: ${theme.accent}60;
+            }
+            .device-item::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, ${theme.accent}10, transparent);
+                transition: left 0.5s;
+            }
+            .device-item:hover::before {
+                left: 100%;
+            }
+            .button-hover:hover {
                 transform: translateY(-2px);
-                box-shadow: ${modoOscuro ? "0 6px 12px rgba(0,0,0,0.2)" : "0 6px 12px rgba(0,0,0,0.1)"};
+                box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            }
+            .button-hover:active {
+                transform: translateY(0);
             }
         `
         document.head.appendChild(loadingStyle)
 
         return () => {
-            document.head.removeChild(loadingStyle)
+            if (document.head.contains(loadingStyle)) {
+                document.head.removeChild(loadingStyle)
+            }
         }
     }, [modoOscuro, theme.accent])
 
     return (
-        <div style={styles.card}>
+        <div style={styles.card} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+            <div style={styles.cardOverlay}></div>
+
             <div style={styles.header}>
                 <div>
                     <h3 style={styles.title}>{estancia.nombreEstancia || estancia.nombre}</h3>
                     {estancia.ubicacion && (
                         <p style={styles.subtitle}>
-                            <Network size={14} style={{ verticalAlign: "middle", marginRight: "4px" }} />
+                            <Network size={16} style={{ color: theme.accent }} />
                             {estancia.ubicacion}
                         </p>
                     )}
-                    <span style={styles.deviceCount}>{estancia.dispositivos?.length || 0} dispositivos</span>
+                    <span style={styles.deviceCount}>
+                        <Network size={14} style={{ marginRight: "6px" }} />
+                        {estancia.dispositivos?.length || 0} dispositivos
+                    </span>
                 </div>
             </div>
 
@@ -403,14 +480,27 @@ export default function Estancia({ estancia, onDelete, modoOscuro }) {
                                             ))}
                                         </div>
                                     ) : (
-                                        <span style={{ fontSize: "12px", color: theme.textSecondary }}>Sin conexiones</span>
+                                        <span
+                                            style={{
+                                                fontSize: "13px",
+                                                color: theme.textSecondary,
+                                                fontStyle: "italic",
+                                                fontWeight: "500",
+                                            }}
+                                        >
+                                            Sin conexiones
+                                        </span>
                                     )}
                                 </li>
                             )
                         })}
                     </ul>
                 ) : (
-                    <div style={styles.noDevices}>No hay dispositivos en esta estancia</div>
+                    <div style={styles.noDevices}>
+                        <Network size={24} style={{ marginBottom: "8px", opacity: 0.5 }} />
+                        <br />
+                        No hay dispositivos en esta estancia
+                    </div>
                 )}
             </div>
 
@@ -435,27 +525,27 @@ export default function Estancia({ estancia, onDelete, modoOscuro }) {
 
             <div style={styles.buttonContainer}>
                 <button
+                    className="button-hover"
                     style={{ ...styles.button, ...styles.showButton }}
-                    onClick={() =>
-                        navigate(`/estancia/${estancia.nombreEstancia || estancia.nombre}/modelado`)
-                    }
+                    onClick={() => navigate(`/estancia/${estancia.nombreEstancia || estancia.nombre}/modelado`)}
                 >
                     <FaEye size={16} /> Ir al modelado
                 </button>
                 <button
+                    className="button-hover"
                     style={{ ...styles.button, ...styles.deleteButton }}
                     onClick={async () => {
                         try {
                             const res = await fetch(`http://127.0.0.1:8000/vulnet/api/v1/Estancia/${estancia.id}/`, {
                                 method: "DELETE",
-                            });
+                            })
                             if (res.ok) {
-                                onDelete(estancia.id);
+                                onDelete(estancia.id)
                             } else {
-                                console.error("Error al eliminar la estancia:", await res.text());
+                                console.error("Error al eliminar la estancia:", await res.text())
                             }
                         } catch (error) {
-                            console.error("Error de red al eliminar la estancia:", error);
+                            console.error("Error de red al eliminar la estancia:", error)
                         }
                     }}
                 >

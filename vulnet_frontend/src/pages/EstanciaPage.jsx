@@ -161,21 +161,25 @@ export default function EstanciaPage() {
         //<div style={styles.container}>
         <div style={scrollStyles.containerWithScroll}>
 
-            <IconButton
-                icon={modoOscuro ? <FaSun /> : <FaMoon />}
-                onClick={toggleColorMode}
-                aria-label="Toggle color mode"
-                variant="ghost"
-                size="md"
-                style={{
-                    position: 'fixed',
-                    top: 6,
-                    right: 16,
-                    zIndex: 1000,
-                }}
-            />
-
-            <h1 style={styles.titulo}>ESTANCIAS</h1>
+            <div style={{
+                padding: '20px',
+                marginBottom: '24px',
+                borderRadius: '8px',
+                backgroundColor: modoOscuro ? '#2D3748' : '#FFFFFF',
+                textAlign: 'center',
+                boxShadow: modoOscuro ? '0 2px 6px rgba(0,0,0,0.6)' : '0 2px 6px rgba(0,0,0,0.1)'
+            }}>
+                <h1 style={{
+                    fontSize: '2.2rem',
+                    fontWeight: '700',
+                    color: modoOscuro ? '#8CD3E0' : '#1A365D',
+                    margin: 0,
+                    letterSpacing: '1px',
+                    fontFamily: "'Segoe UI', sans-serif",
+                }}>
+                    ESTANCIAS
+                </h1>
+            </div>
 
             {error && <div style={styles.errorMessage}>{error}</div>}
 
@@ -208,6 +212,7 @@ export default function EstanciaPage() {
                     No hay estancias disponibles.
                 </div>
             )}
+
         </div>
 
     );

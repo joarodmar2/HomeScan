@@ -97,14 +97,14 @@ function DeviceForm({ register, errors, device_types, device_capab, styles }) {
 
       {/* Tipo */}
       <div style={styles.field}>
-        <label htmlFor="type" style={styles.label}>Tipo de Protocolo</label>
+        <label htmlFor="type" style={styles.label}>Tipo de Dispositivo</label>
         <select
           id="type"
           {...register("type", { required: true })}
           style={styles.select}
           defaultValue=""
         >
-          <option value="" disabled hidden>Seleccione un protocolo</option>
+          <option value="" disabled hidden>Seleccione un tipo</option>
           {device_types.map((protocol, i) => (
             <option key={i} value={protocol}>{protocol}</option>
           ))}
@@ -230,13 +230,7 @@ export function DevicesFormPage() {
         <h1 style={styles.title}>
           Formulario de Creación de Dispositivos
         </h1>
-        <IconButton
-          icon={modoOscuro ? <FaSun /> : <FaMoon />}
-          onClick={toggleColorMode}
-          aria-label="Toggle color mode"
-          isRound
-          size="md"
-        />
+
       </Flex>
       <form onSubmit={onSubmit}>
         <DeviceForm register={register} errors={errors} device_types={device_types} device_capab={device_capab} styles={styles} />

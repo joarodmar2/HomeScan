@@ -18,34 +18,6 @@ export function ConnectionsGraph() {
   const { colorMode, toggleColorMode } = useColorMode();
   const modoOscuro = colorMode === 'dark';
 
-  const scrollStyles = {
-    containerWithScroll: {
-      overflowY: "auto",
-      maxHeight: "100vh",
-      paddingTop: "120px", // espacio para header fijo
-      paddingX: "20px",     // margen lateral opcional
-      scrollbarWidth: "thin", // Firefox
-      "&::-webkit-scrollbar": {
-        width: "8px",
-      },
-      "&::-webkit-scrollbar-thumb": {
-        backgroundColor: "#a0aec0", // gris medio
-        borderRadius: "4px",
-      },
-      "&::-webkit-scrollbar-track": {
-        backgroundColor: "#edf2f7", // gris claro
-      },
-      _dark: {
-        "&::-webkit-scrollbar-thumb": {
-          backgroundColor: "#4A5568", // gris oscuro
-        },
-        "&::-webkit-scrollbar-track": {
-          backgroundColor: "#1A202C", // fondo oscuro
-        },
-      }
-    }
-  };
-
   useEffect(() => {
     async function loadDeviceModels() {
       try {
@@ -164,27 +136,7 @@ export function ConnectionsGraph() {
   };
 
   return (
-    <Box sx={scrollStyles.containerWithScroll}>
-      <Flex justifyContent="space-between" alignItems="center" mb={6}>
-        <Flex flex={1} justifyContent="center">
-          <Text
-            fontSize="2xl"
-            fontWeight="semibold"
-            color="gray.900"
-            _dark={{ color: "white" }}
-          >
-            Grafo de Conexiones
-          </Text>
-        </Flex>
-        <IconButton
-          icon={modoOscuro ? <FaSun /> : <FaMoon />}
-          onClick={toggleColorMode}
-          aria-label="Toggle color mode"
-          variant="ghost"
-          size="md"
-        />
-      </Flex>
-
+    <Box px="20px" pt="100px">
       {loading && secondloading ? (
         <div>Loading...</div>
       ) : (

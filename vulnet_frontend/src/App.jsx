@@ -18,6 +18,7 @@ import Estancia from "./components/Estancia";
 import ThreeScene from "./components/ThreeScene";
 import { ChakraProvider, Box } from "@chakra-ui/react";
 import VulnerabilityPage from "./pages/VulnerabilityPage";  // Importamos la nueva página
+import LandingPage from "./pages/LandingPage";
 
 function App() {
   return (
@@ -27,7 +28,7 @@ function App() {
 
         <Box ml={{ base: 0, md: 60 }} p={4}> {/* MARGEN PARA TODAS LAS PÁGINAS */}
           <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/" element={<Navigate to="/info" />} />
             <Route path="/devices" element={<DevicesPage />} />
             <Route path="/devices/:id" element={<DevicesFormPage />} />
             <Route path="/device-create" element={<DevicesFormPage />} />
@@ -42,6 +43,8 @@ function App() {
             <Route path="/estancia/:nombre" element={<Estancia />} />
             <Route path="/estancia/:nombreEstancia/modelado" element={<ThreeScene />} />
             <Route path="/modelado" element={<ThreeScene />} />
+            <Route path="/info" element={<LandingPage />} />
+
             <Route path="/vulnerabilities" element={<VulnerabilityPage />} />
           </Routes>
 
