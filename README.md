@@ -1,4 +1,4 @@
-# 🧠 alba-Assistant
+# 🧠 HomeScan
 
 Una plataforma web inteligente para la **gestión de vulnerabilidades y dispositivos conectados en estancias**, con visualización gráfica y análisis en tiempo real. Desarrollado con **Django REST** y **React + Vite**.
 
