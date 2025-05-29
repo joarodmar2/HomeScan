@@ -25,7 +25,7 @@ Una plataforma web inteligente para la **gestión de vulnerabilidades y disposit
 
 ```bash
 git clone https://github.com/IDEA-Research-Group/alba-assistant.git
-cd alba-assistant
+cd HomeScan
 ```
 
 ---
