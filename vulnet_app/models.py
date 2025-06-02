@@ -71,6 +71,7 @@ class Mueble(models.Model):
     rotation = models.FloatField()          # Rotación en grados
     imagen = models.ImageField(upload_to="muebles/", null=True, blank=True)  # Imagen opcional
     visible = models.BooleanField(default=False)  # 👈 NUEVO CAMPO
+    dispositivo = models.ForeignKey(Device, on_delete=models.CASCADE, related_name = "muebleDispositivo",null=True,blank=True)
 
     def __str__(self):
         return f"{self.tipo} ({self.x}, {self.y})"

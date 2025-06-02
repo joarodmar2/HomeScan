@@ -47,6 +47,23 @@ class ObjectSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class MuebleSerializer(serializers.ModelSerializer):
+    imagen_dispositivo = serializers.SerializerMethodField()
     class Meta:
         model = Mueble
         fields = '__all__'  # Incluye todos los campos del modelo
+
+    def get_imagen_dispositivo(self, obj):
+        if not obj.dispositivo:
+            print("No hay dispositivo asignado")
+            return None
+        tipo = obj.dispositivo.type.lower()
+        print(f"Tipo dispositivo: {tipo}")
+        imagenes_por_tipo = {
+            'smartphone': 'movil.png',
+            'tablet': 'tablet.png',
+            'smartwatch' : 'applewatch.png'
+        }
+        nombre_imagen = imagenes_por_tipo.get(tipo)
+        if nombre_imagen:
+            return f"/media/images/{nombre_imagen}"
+        return None

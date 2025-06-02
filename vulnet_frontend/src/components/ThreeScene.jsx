@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from "react"
 import { useColorMode } from "@chakra-ui/react";
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom";
 import FurnitureForm from "./FurnitureForm"
 import Header from "./Header"
 import axios from 'axios';
@@ -28,6 +28,7 @@ const CanvasRoom = () => {
     const [saving, setSaving] = useState(false)
     const [dispositivosDisponibles, setDispositivosDisponibles] = useState([]);
     const [dispositivosEstancia, setDispositivosEstancia] = useState([]);
+    const [error, setError] = useState(null);
 
     const { colorMode } = useColorMode();
     // unified light/dark palette
@@ -54,6 +55,7 @@ const CanvasRoom = () => {
     // Obtener estanciaId
     useEffect(() => {
         setLoading(true)
+        console.log("nombreEstancia", nombreEstancia)
         fetch(`http://localhost:8000/vulnet/api/v1/Estancia/nombre/${encodeURIComponent(nombreEstancia)}/`)
             .then((response) => response.json())
             .then((data) => {
@@ -101,6 +103,21 @@ const CanvasRoom = () => {
                 ctx.rotate((rotationAngle * Math.PI) / 180)
                 ctx.drawImage(img, -item.width / 2, -item.height / 2, item.width, item.height)
                 ctx.restore()
+
+                if (item.imagen_dispositivo) {
+                    const dispositivoImg = new Image()
+                    dispositivoImg.crossOrigin = "anonymous"
+                    console.log("Imagen del dispositivo:", item.imagen_dispositivo)
+                    dispositivoImg.src = `http://localhost:8000${item.imagen_dispositivo}`
+
+                    dispositivoImg.onload = () => {
+                        ctx.save()
+                        ctx.translate(item.x + item.width / 2, item.y + item.height / 2 - 15) // 15px más arriba
+                        ctx.rotate((rotationAngle * Math.PI) / 180)
+                        ctx.drawImage(dispositivoImg, -item.width / 4, -item.height / 4, item.width / 2, item.height / 2)
+                        ctx.restore()
+                    }
+                }
 
                 if (selectedItem === index) {
                     // Recuadro de selección con efecto de brillo
@@ -256,6 +273,7 @@ const CanvasRoom = () => {
                                 // Eliminar del estado local
                                 setFurniture((prev) => prev.filter((_, i) => i !== selectedItem))
                                 setSelectedItem(null)
+                                window.location.reload()
                             } else {
                                 alert("❌ Error al eliminar el mueble.")
                             }
@@ -387,10 +405,9 @@ const CanvasRoom = () => {
                     dispositivos: estancia.dispositivos
                 }),
             });
-
             if (response.ok) {
                 alert("Los cambios han sido guardados correctamente.");
-                navigate("/Estancia");
+                window.location.reload();
             } else {
                 alert("Hubo un error al guardar los cambios.");
             }
@@ -530,120 +547,126 @@ const CanvasRoom = () => {
                             </div>
                         </div>
                     </div>
-                    <div style={styles.canvasContainer}>
-                        <canvas
-                            ref={canvasRef}
-                            width={1000}
-                            height={700}
-                            onMouseDown={handleMouseDown}
-                            onMouseMove={handleMouseMove}
-                            onMouseUp={handleMouseUp}
-                            onDrop={handleDrop}
-                            onDragOver={(e) => e.preventDefault()}
-                            style={{
-                                ...styles.canvas,
-                                backgroundColor: isDark ? COLORS.darkCard : "#e0e0e0",
-                            }}
-                        />
-                        {selectedItem !== null && (
-                            <div style={styles.itemControls}>
-                                <button
-                                    onClick={() => {
-                                        setRotations((prev) => ({
-                                            ...prev,
-                                            [selectedItem]: (prev[selectedItem] || 0) + 15,
-                                        }))
-                                    }}
-                                    style={styles.controlButton}
-                                    title="Rotar (o presiona R)"
-                                >
-                                    🔄
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                    <div
-                        style={{
-                            ...styles.card,
-                            backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard,
-                            marginLeft: "-15px",
-                        }}
-                    >
-                        <h2
-                            style={{
-                                ...styles.nombre,
-                                color: isDark ? COLORS.darkText : COLORS.lightText,
-                            }}
-                        >
-                            Dispositivos
-                        </h2>
-
-                        <ul
-                            style={{
-                                ...styles.list,
-                                color: isDark ? COLORS.darkText : COLORS.lightText,
-                            }}
-                        >
-                            {dispositivosEstancia.length > 0 ? (
-                                dispositivosEstancia.map((device) => (
-                                    <li
-                                        key={device.id}
-                                        style={{
-                                            ...styles.listItem,
-                                            backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard,
-                                            color: isDark ? COLORS.darkText : COLORS.lightText,
-                                        }}
-                                    >
-                                        {device.model}
-                                        <button
-                                            style={styles.deleteButton}
-                                            onClick={() => handleDeleteDevice(device.id)}
-                                        >
-                                            ❌
-                                        </button>
-                                    </li>
-                                ))
-                            ) : (
-                                <p style={{ color: isDark ? COLORS.darkText : COLORS.lightText, fontStyle: "italic" }}>
-                                    No hay dispositivos en esta estancia.
-                                </p>
-                            )}
-                        </ul>
-
-                        {/* 🔹 Select para añadir dispositivos */}
-                        <div style={styles.addDeviceContainer}>
-                            <select
+                    <div style={{ display: "flex", gap: "20px" }}>
+                        <div style={styles.canvasContainer}>
+                            <canvas
+                                ref={canvasRef}
+                                width={1000}
+                                height={700}
+                                onMouseDown={handleMouseDown}
+                                onMouseMove={handleMouseMove}
+                                onMouseUp={handleMouseUp}
+                                onDrop={handleDrop}
+                                onDragOver={(e) => e.preventDefault()}
                                 style={{
-                                    ...styles.input,
-                                    backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard,
+                                    ...styles.canvas,
+                                    backgroundColor: isDark ? COLORS.darkCard : "#e0e0e0",
+                                }}
+                            />
+                            {selectedItem !== null && (
+                                <div style={styles.itemControls}>
+                                    <button
+                                        onClick={() => {
+                                            setRotations((prev) => ({
+                                                ...prev,
+                                                [selectedItem]: (prev[selectedItem] || 0) + 15,
+                                            }))
+                                        }}
+                                        style={styles.controlButton}
+                                        title="Rotar (o presiona R)"
+                                    >
+                                        🔄
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                        <div
+                            style={{
+                                ...styles.card,
+                                backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard,
+                                marginLeft: "-10px",
+                            }}
+                        >
+                            <h2
+                                style={{
+                                    ...styles.nombre,
                                     color: isDark ? COLORS.darkText : COLORS.lightText,
                                 }}
-                                onChange={handleAddDevice}
-                                defaultValue=""
                             >
-                                <option value="" disabled>Selecciona un dispositivo</option>
-                                {dispositivosDisponibles.map((device) => (
-                                    <option key={device.id} value={device.id}>{device.model}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <button style={styles.saveButton} onClick={updateEstancia}>Guardar</button>
-                    </div>
-                </div>
+                                Dispositivos
+                            </h2>
 
-                {showForm && (
-                    <div style={styles.modalOverlay}>
-                        <div style={{
-                            ...styles.modalContent,
-                            backgroundColor: isDark ? "#16213e" : "#ffffff",
-                        }}>
-                            <button style={styles.closeButton} onClick={() => setShowForm(false)}>
-                                ×
+                            <ul
+                                style={{
+                                    ...styles.list,
+                                    color: isDark ? COLORS.darkText : COLORS.lightText,
+                                }}
+                            >
+                                {dispositivosEstancia.length > 0 ? (
+                                    dispositivosEstancia.map((device) => (
+                                        <li
+                                            key={device.id}
+                                            style={{
+                                                ...styles.listItem,
+                                                backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard,
+                                                color: isDark ? COLORS.darkText : COLORS.lightText,
+                                            }}
+                                        >
+                                            {device.model}
+                                            <button
+                                                style={styles.deleteButton}
+                                                onClick={() => handleDeleteDevice(device.id)}
+                                            >
+                                                ❌
+                                            </button>
+                                        </li>
+                                    ))
+                                ) : (
+                                    <p style={{ color: isDark ? COLORS.darkText : COLORS.lightText, fontStyle: "italic" }}>
+                                        No hay dispositivos en esta estancia.
+                                    </p>
+                                )}
+                            </ul>
+
+                            {/* 🔹 Select para añadir dispositivos */}
+                            <div style={styles.addDeviceContainer}>
+                                <select
+                                    style={{
+                                        ...styles.input,
+                                        backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard,
+                                        color: isDark ? COLORS.darkText : COLORS.lightText,
+                                    }}
+                                    onChange={handleAddDevice}
+                                    defaultValue=""
+                                >
+                                    <option value="" disabled>Selecciona un dispositivo</option>
+                                    {dispositivosDisponibles.map((device) => (
+                                        <option key={device.id} value={device.id}>{device.model}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <button style={styles.saveButton} onClick={() => {
+                                updateEstancia();
+                            }}>
+                                Guardar
                             </button>
-                            <FurnitureForm estanciaId={estanciaId} onClose={() => setShowForm(false)} />
                         </div>
                     </div>
-                )}
+
+                    {showForm && (
+                        <div style={styles.modalOverlay}>
+                            <div style={{
+                                ...styles.modalContent,
+                                backgroundColor: isDark ? "#16213e" : "#ffffff",
+                            }}>
+                                <button style={styles.closeButton} onClick={() => setShowForm(false)}>
+                                    ×
+                                </button>
+                                <FurnitureForm estanciaId={estanciaId} onClose={() => setShowForm(false)} />
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </>
     )
