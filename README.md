@@ -49,6 +49,7 @@ source venv/bin/activate
 #### 2️⃣ Aplicar migraciones
 
 ```bash
+python manage.py makemigrations
 python manage.py migrate
 ```
 
