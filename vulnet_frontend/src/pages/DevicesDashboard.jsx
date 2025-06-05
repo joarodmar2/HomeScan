@@ -535,6 +535,19 @@ export default function Dashboard() {
                                     bottom: 10
                                   }
                                 },
+                                dataLabels: {
+                                  enabled: true,
+                                  formatter: function (_, opts) {
+                                    return opts.w.globals.series[opts.seriesIndex][opts.dataPointIndex] > 0
+                                      ? opts.w.globals.seriesNames[opts.seriesIndex]
+                                      : '';
+                                  },
+                                  style: {
+                                    colors: ['#ffffff'],
+                                    fontSize: '14px',
+                                    fontWeight: 'bold'
+                                  }
+                                },
                                 grid: {
                                   show: false
                                 },
@@ -591,16 +604,7 @@ export default function Dashboard() {
                                     columnWidth: '35%',
                                     distributed: false,
                                     dataLabels: {
-                                      enabled: true,
-                                      position: 'center',
-                                      formatter: function (_, opts) {
-                                        return opts.w.globals.seriesNames[opts.seriesIndex];
-                                      },
-                                      style: {
-                                        colors: ['#ffffff'],
-                                        fontSize: '14px',
-                                        fontWeight: 'bold'
-                                      }
+                                      enabled: false
                                     }
                                   }
                                 },
