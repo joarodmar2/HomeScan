@@ -235,29 +235,45 @@ const CanvasRoom = () => {
 
     // Manejo de mouse
     const handleMouseDown = (e) => {
-        const rect = canvasRef.current.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
+        const rect = canvasRef.current.getBoundingClientRect();
+        const scaleX = canvasRef.current.width / rect.width;
+        const scaleY = canvasRef.current.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
         let clicked = false
 
+        // Reiniciar dragging y resizing antes de comprobar
+        setDraggingItem(null);
+        setResizing(null);
+
         furniture.forEach((item, index) => {
-            if (
-                x >= item.x + item.width - 16 &&
+            const inside =
+                x >= item.x &&
                 x <= item.x + item.width &&
-                y >= item.y + item.height - 16 &&
-                y <= item.y + item.height
-            ) {
-                setResizing(index)
-                clicked = true
-                return
+                y >= item.y &&
+                y <= item.y + item.height;
+
+            // Nueva lógica: el área de resize está centrada sobre el borde inferior derecho (círculo azul)
+            const onResizeCorner =
+                x >= item.x + item.width - 6 &&
+                x <= item.x + item.width + 6 &&
+                y >= item.y + item.height - 6 &&
+                y <= item.y + item.height + 6;
+
+            // Prioridad a onResizeCorner
+            if (onResizeCorner) {
+                setSelectedItem(index);
+                setResizing(index);
+                clicked = true;
+                return;
+            } else if (inside) {
+                setSelectedItem(index);
+                setDraggingItem(index);
+                setOffset({ x: x - item.x, y: y - item.y });
+                clicked = true;
+                return;
             }
-            if (x >= item.x && x <= item.x + item.width && y >= item.y && y <= item.y + item.height) {
-                setSelectedItem(index)
-                setDraggingItem(index)
-                setOffset({ x: x - item.x, y: y - item.y })
-                clicked = true
-            }
-        })
+        });
 
         if (!clicked) setSelectedItem(null)
         // Si hizo clic en la cruz del mueble seleccionado
@@ -299,25 +315,27 @@ const CanvasRoom = () => {
     }
 
     const handleMouseMove = (e) => {
-        const rect = canvasRef.current.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
-        const updatedFurniture = [...furniture]
+        const rect = canvasRef.current.getBoundingClientRect();
+        const scaleX = canvasRef.current.width / rect.width;
+        const scaleY = canvasRef.current.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+        const updatedFurniture = [...furniture];
 
         if (resizing !== null) {
-            const item = updatedFurniture[resizing]
-            const newSize = Math.max(20, x - item.x)
-            item.width = newSize
-            item.height = newSize
-            setFurniture(updatedFurniture)
-            return
+            const item = updatedFurniture[resizing];
+            const newSize = Math.max(20, x - item.x);
+            item.width = newSize;
+            item.height = newSize;
+            setFurniture(updatedFurniture);
+            return;
         }
 
         if (draggingItem !== null) {
-            const item = updatedFurniture[draggingItem]
-            item.x = x - offset.x
-            item.y = y - offset.y
-            setFurniture(updatedFurniture)
+            const item = updatedFurniture[draggingItem];
+            item.x = x - offset.x;
+            item.y = y - offset.y;
+            setFurniture(updatedFurniture);
         }
     }
 
