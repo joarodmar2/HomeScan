@@ -20,6 +20,7 @@ import { ChakraProvider, Box } from "@chakra-ui/react";
 import VulnerabilityPage from "./pages/VulnerabilityPage";  // Importamos la nueva página
 import LandingPage from "./pages/LandingPage";
 
+
 function App() {
   return (
     <ChakraProvider>
@@ -44,6 +45,7 @@ function App() {
             <Route path="/estancia/:nombreEstancia/modelado" element={<ThreeScene />} />
             <Route path="/modelado" element={<ThreeScene />} />
             <Route path="/info" element={<LandingPage />} />
+
 
             <Route path="/vulnerabilities" element={<VulnerabilityPage />} />
           </Routes>

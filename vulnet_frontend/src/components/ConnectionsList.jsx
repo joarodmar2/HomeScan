@@ -127,7 +127,7 @@ export function ConnectionsList() {
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = modoOscuro ? "#1F2937" : "#1A365D")}
           >
             <FaPlus style={{ marginRight: 8 }} />
-            Create Connection
+            Añadir conexión
           </button>
         </Link>
 

@@ -12,6 +12,7 @@ export function DevicesList() {
 
   const { colorMode, toggleColorMode } = useColorMode();
   const modoOscuro = colorMode === "dark";
+  const [modoLista, setModoLista] = useState(false);
 
   useEffect(() => {
     async function loadDevices() {
@@ -80,13 +81,6 @@ export function DevicesList() {
   return (
     <div style={estilos.contenedor}>
       <Flex justifyContent="flex-end" marginBottom="16px">
-        <IconButton
-          icon={modoOscuro ? <FaSun /> : <FaMoon />}
-          onClick={toggleColorMode}
-          aria-label="Toggle color mode"
-          variant="ghost"
-          size="md"
-        />
       </Flex>
       <h1 style={estilos.titulo}>DISPOSITIVOS</h1>
       <button style={estilos.botonCrear}>
@@ -95,7 +89,23 @@ export function DevicesList() {
         </Link>
       </button>
 
-      <div className="grid grid-cols-3 gap-3">
+      <button
+        onClick={() => setModoLista(!modoLista)}
+        style={{
+          marginBottom: '16px',
+          padding: '10px 20px',
+          borderRadius: '8px',
+          backgroundColor: modoOscuro ? '#2d3748' : '#4A5568',
+          color: 'white',
+          fontWeight: 'bold',
+          border: 'none',
+          cursor: 'pointer',
+        }}
+      >
+        {modoLista ? 'Ver en cuadrícula' : 'Ver en lista'}
+      </button>
+
+      <div className={modoLista ? 'flex flex-col gap-3' : 'grid grid-cols-3 gap-3'}>
         {dispositivosPagina.map((device) => (
           <DeviceCard
             key={device.id}

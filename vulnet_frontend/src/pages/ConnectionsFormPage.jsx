@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useColorMode, IconButton, Flex } from "@chakra-ui/react";
-import { FaSun, FaMoon } from "react-icons/fa";
+import { FaSun, FaMoon, FaTrash, FaSave } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { createConnection, deleteConnection, getConnection, updateConnection, getConnectionProtocols } from "../api/connections.api";
@@ -223,43 +223,93 @@ export function ConnectionsFormPage() {
         <h1 style={styles.title}>
           Formulario de Conexiones
         </h1>
-        <IconButton
-          icon={modoOscuro ? <FaSun /> : <FaMoon />}
-          onClick={toggleColorMode}
-          aria-label="Toggle color mode"
-          variant="ghost"
-          size="md"
-        />
+
       </Flex>
       <form onSubmit={onSubmit}>
         <ConnectionForm register={register} errors={errors} deviceModels={device_models} connProtocols={conn_protocols} styles={styles} />
-        <button
-          type="submit"
-          style={styles.submitBtn}
-        >
-          Guardar
-        </button>
-      </form>
-      {params.id && (
-        <div className="flex justify-end">
+        {params.id ? (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+            <button
+              type="submit"
+              style={{
+                backgroundColor: '#10B981',
+                color: '#ffffff',
+                padding: '0.75rem',
+                borderRadius: '0.5rem',
+                width: '12rem',
+                cursor: 'pointer',
+                border: 'none',
+                transition: 'background-color 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#059669')}
+              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#10B981')}
+            >
+              <FaSave size={16} style={{ marginBottom: "-2px", marginRight: "6px" }} />
+              Guardar
+            </button>
+            <button
+              style={{
+                backgroundColor: '#EF4444',
+                color: '#ffffff',
+                padding: '0.75rem',
+                borderRadius: '0.5rem',
+                width: '12rem',
+                cursor: 'pointer',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                transition: 'background-color 0.3s ease',
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#DC2626')}
+              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#EF4444')}
+              onClick={async () => {
+                const accepted = window.confirm("¿Estás seguro de que deseas eliminar esta conexión? Esta acción no se puede deshacer.");
+                if (accepted) {
+                  await deleteConnection(params.id);
+                  toast.success("Connection Removed", {
+                    position: "bottom-right",
+                    style: { background: "#101010", color: "#fff" },
+                  });
+                  navigate("/connections");
+                }
+              }}
+            >
+              <FaTrash size={16} />
+              Eliminar
+            </button>
+          </div>
+        ) : (
           <button
-            style={styles.deleteBtn}
-            onClick={async () => {
-              const accepted = window.confirm("Are you sure?");
-              if (accepted) {
-                await deleteConnection(params.id);
-                toast.success("Connection Removed", {
-                  position: "bottom-right",
-                  style: { background: "#101010", color: "#fff" },
-                });
-                navigate("/connections");
-              }
+            type="submit"
+            style={{
+              backgroundColor: '#10B981',
+              color: '#ffffff',
+              padding: '0.75rem',
+              borderRadius: '0.5rem',
+              width: '100%',
+              marginTop: '1rem',
+              cursor: 'pointer',
+              border: 'none',
+              transition: 'background-color 0.3s ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
             }}
+            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#059669')}
+            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#10B981')}
           >
-            Delete
+            <FaSave size={16} style={{ marginBottom: "-2px", marginRight: "6px" }} />
+            Guardar
           </button>
-        </div>
-      )}
+        )}
+      </form>
       {isShown && (
         <div className="flex justify-center mt-4">
           <button disabled type="button" className="text-gray-700 bg-gray-200 font-medium rounded-md text-sm px-5 py-2.5 inline-flex items-center">

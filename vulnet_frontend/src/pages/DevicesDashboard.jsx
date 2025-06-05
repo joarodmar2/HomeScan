@@ -175,60 +175,6 @@ const trafficData = [
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
-// Datos de ejemplo para el gráfico de barras apiladas (simulando la respuesta de la API)
-const mockStackedData = [
-  {
-    estancia: "Sala de estar",
-    dispositivos: [
-      { nombre: "Smart TV", vulnerabilidades: 5 },
-      { nombre: "Altavoz inteligente", vulnerabilidades: 3 },
-      { nombre: "Router WiFi", vulnerabilidades: 7 }
-    ]
-  },
-  {
-    estancia: "Cocina",
-    dispositivos: [
-      { nombre: "Nevera inteligente", vulnerabilidades: 2 },
-      { nombre: "Altavoz inteligente", vulnerabilidades: 1 },
-      { nombre: "Router WiFi", vulnerabilidades: 4 }
-    ]
-  },
-  {
-    estancia: "Dormitorio",
-    dispositivos: [
-      { nombre: "Smart TV", vulnerabilidades: 3 },
-      { nombre: "Altavoz inteligente", vulnerabilidades: 2 },
-      { nombre: "Router WiFi", vulnerabilidades: 5 }
-    ]
-  },
-  {
-    estancia: "Oficina",
-    dispositivos: [
-      { nombre: "Ordenador", vulnerabilidades: 8 },
-      { nombre: "Impresora", vulnerabilidades: 6 },
-      { nombre: "Router WiFi", vulnerabilidades: 9 }
-    ]
-  }
-];
-
-// Datos de ejemplo para las estadísticas
-const mockStats = {
-  ndev: 12,
-  nvuln: 8,
-  total_vulnerabilidades: 55,
-  weighted_average: 3.7,
-  average_sustainability: 6.8
-};
-
-// Datos de ejemplo para el gráfico de donut
-const mockSeveritySummary = {
-  none: 10,
-  low: 20,
-  medium: 15,
-  high: 8,
-  critical: 2,
-  total: 55
-};
 
 
 export default function Dashboard() {
@@ -266,20 +212,100 @@ export default function Dashboard() {
 
   // Estado para los datos del gráfico de barras apiladas
   const [stackedData, setStackedData] = useState([]);
+
+  const [statsData, setStatsData] = useState({
+    ndev: 0,
+    nvuln: 0,
+    total_vulnerabilidades: 0,
+  });
+  // Estado para indicadores adicionales
+  const [extraStats, setExtraStats] = useState({
+    estancia_mas_vulnerable: "",
+    dispositivo_mas_vulnerable: "",
+    porcentaje_afectados: 0,
+  });
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const res = await fetch("http://localhost:8000/vulnet/api/v1/estadisticas-generales/");
+        const data = await res.json();
+        setStatsData(data);
+
+        // Calcular % de dispositivos afectados
+        const porcentaje_afectados = data.ndev > 0 ? ((data.nvuln / data.ndev) * 100).toFixed(1) : 0;
+
+        // Obtener estancia y dispositivo más vulnerable
+        const stackedRes = await fetch("http://localhost:8000/vulnet/api/v1/vulnerabilidades-por-estancia-y-dispositivo/");
+        const stackedData = await stackedRes.json();
+
+        let estanciaMasVulnerable = "";
+        let maxVulnEstancia = -1;
+        let dispositivoMasVulnerable = "";
+        let maxVulnDispositivo = -1;
+
+        const mapaEstancias = {};
+        const mapaDispositivos = {};
+
+        for (const item of stackedData) {
+          mapaEstancias[item.estancia] = (mapaEstancias[item.estancia] || 0) + item.cantidad;
+          mapaDispositivos[item.dispositivo] = (mapaDispositivos[item.dispositivo] || 0) + item.cantidad;
+        }
+
+        for (const [estancia, total] of Object.entries(mapaEstancias)) {
+          if (total > maxVulnEstancia) {
+            maxVulnEstancia = total;
+            estanciaMasVulnerable = estancia;
+          }
+        }
+
+        for (const [dispositivo, total] of Object.entries(mapaDispositivos)) {
+          if (total > maxVulnDispositivo) {
+            maxVulnDispositivo = total;
+            dispositivoMasVulnerable = dispositivo;
+          }
+        }
+
+        setExtraStats({
+          estancia_mas_vulnerable: estanciaMasVulnerable,
+          dispositivo_mas_vulnerable: dispositivoMasVulnerable,
+          porcentaje_afectados,
+        });
+      } catch (error) {
+        console.error("Error al cargar estadísticas:", error);
+      }
+    }
+
+    loadStats();
+  }, []);
   useEffect(() => {
     async function loadStackedData() {
       try {
         const res = await fetch("http://localhost:8000/vulnet/api/v1/vulnerabilidades-por-estancia-y-dispositivo/");
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setStackedData(data);
-        } else {
-          console.error("Formato inesperado de stacked data:", data);
-        }
+        const rawData = await res.json();
+        console.log("Datos recibidos para stackedData:", rawData);
+
+        // Agrupar por estancia
+        const agrupado = rawData.reduce((acc, curr) => {
+          const { estancia, dispositivo, cantidad } = curr;
+          let estanciaObj = acc.find(e => e.estancia === estancia);
+          if (!estanciaObj) {
+            estanciaObj = { estancia, dispositivos: [] };
+            acc.push(estanciaObj);
+          }
+          estanciaObj.dispositivos.push({
+            nombre: dispositivo,
+            vulnerabilidades: cantidad
+          });
+          return acc;
+        }, []);
+
+        setStackedData(agrupado);
       } catch (error) {
         console.error("Error al cargar stacked data:", error);
       }
     }
+
     loadStackedData();
   }, []);
 
@@ -322,17 +348,17 @@ export default function Dashboard() {
   const categories = stackedData.map(item => item.estancia);
   const dispositivosUnicos = [
     ...new Set(
-      stackedData.flatMap(estancia => estancia.dispositivos.map(d => d.nombre))
+      stackedData.flatMap(estancia => (estancia.dispositivos || []).map(d => d.nombre))
     )
   ];
   // Derivar vulnerabilidades totales por estancia y ordenar por nombre
   const estanciaVulnerabilidades = stackedData
     .map(item => ({
       estancia: item.estancia,
-      total_vulnerabilidades: item.dispositivos.reduce((sum, d) => sum + d.vulnerabilidades, 0),
+      total_vulnerabilidades: (item.dispositivos || []).reduce((sum, d) => sum + d.vulnerabilidades, 0),
     }))
     .sort((a, b) => a.estancia.localeCompare(b.estancia));
-  // Create a color scale from yellow (few vulnerabilities) to red (many)
+  // Create a color scale from yellow (few) to orange (mid) to red (many)
   const data_array = estanciaVulnerabilidades.map(estancia => ({
     label: estancia.estancia,
     value: estancia.total_vulnerabilidades,
@@ -341,9 +367,12 @@ export default function Dashboard() {
   const colorScale = scaleLinear()
     .domain([
       Math.min(...data_array.map(d => d.value)),
+      (Math.min(...data_array.map(d => d.value)) + Math.max(...data_array.map(d => d.value))) / 2,
       Math.max(...data_array.map(d => d.value))
     ])
-    .range(["#FACC15", "#E11D48"]);
+    .range(["#FACC15", "#F97316", "#E11D48"]);
+  // Estado para punto de burbuja hover
+  const [hoveredPoint, setHoveredPoint] = useState(null);
 
   // Prepare non-overlapping bubble positions via D3 pack layout
   const packSize = { width: 600, height: 600 };
@@ -363,11 +392,16 @@ export default function Dashboard() {
     fill: colorScale(node.data.value),
   }));
 
+  // Nueva definición de stackedSeries con etiquetas de dispositivo en cada segmento
   const stackedSeries = dispositivosUnicos.map(nombreDispositivo => ({
     name: nombreDispositivo,
     data: stackedData.map(estancia => {
       const dispositivo = estancia.dispositivos.find(d => d.nombre === nombreDispositivo);
-      return dispositivo ? dispositivo.vulnerabilidades : 0;
+      return {
+        x: estancia.estancia,
+        y: dispositivo ? dispositivo.vulnerabilidades : 0,
+        label: nombreDispositivo
+      };
     })
   }));
 
@@ -443,12 +477,13 @@ export default function Dashboard() {
               <TabPanel px={0}>
                 {/* Stats Cards */}
                 {/* Mini Statistics */}
-                <SimpleGrid columns={{ base: 1, md: 2, lg: 5 }} spacing={4} mb={8}>
-                  <MiniStatistics title="Dispositivos" value={mockStats.ndev} icon={FiCpu} iconColor="blue.400" />
-                  <MiniStatistics title="Dispositivos Vulnerables" value={mockStats.nvuln} icon={FiShield} iconColor="red.400" />
-                  <MiniStatistics title="Vulnerabilidades Totales" value={mockStats.total_vulnerabilidades} icon={FiAlertCircle} iconColor="orange.400" />
-                  <MiniStatistics title="Promedio Ponderado" value={mockStats.weighted_average} icon={FiActivity} iconColor="purple.400" />
-                  <MiniStatistics title="Sostenibilidad Media" value={mockStats.average_sustainability} icon={FiHeart} iconColor="green.400" />
+                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4} mb={8}>
+                  <MiniStatistics title="Dispositivos" value={statsData.ndev} icon={FiCpu} iconColor="blue.400" />
+                  <MiniStatistics title="Dispositivos Vulnerables" value={statsData.nvuln} icon={FiShield} iconColor="red.400" />
+                  <MiniStatistics title="Vulnerabilidades Totales" value={statsData.total_vulnerabilidades} icon={FiAlertCircle} iconColor="orange.400" />
+                  <MiniStatistics title="Estancia Más Vulnerable" value={extraStats.estancia_mas_vulnerable || "—"} icon={FiHome} iconColor="purple.400" />
+                  <MiniStatistics title="Dispositivo Más Vulnerable" value={extraStats.dispositivo_mas_vulnerable || "—"} icon={FiActivity} iconColor="teal.400" />
+                  <MiniStatistics title="% Dispositivos Afectados" value={`${extraStats.porcentaje_afectados}%`} icon={FiTrendingUp} iconColor="yellow.400" />
                 </SimpleGrid>
 
                 {/* Selector de tipo de gráfico */}
@@ -484,21 +519,103 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardBody>
                       <Box bg={cardBg} p={4} borderRadius="xl" boxShadow="md" h="700px">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <ReactApexChart
-                            options={{
-                              chart: { type: 'bar', stacked: true, background: 'transparent', toolbar: { show: false } },
-                              xaxis: { categories, labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } } },
-                              yaxis: { title: { text: 'Vulnerabilidades' }, labels: { style: { colors: useColorModeValue('#2D3748', '#FFFFFF') } } },
-                              legend: { position: 'bottom', labels: { colors: [useColorModeValue('#2D3748', '#FFFFFF')] } },
-                              tooltip: { y: { formatter: v => `${v} vulnerabilidades` } },
-                              theme: { mode: colorMode }
-                            }}
-                            series={stackedSeries}
-                            type="bar"
-                            height={700}
-                          />
-                        </ResponsiveContainer>
+                        {stackedData.length > 0 && categories.length > 0 && dispositivosUnicos.length > 0 ? (
+                          <Box w="100%" overflowX="auto" pl={12}>
+                            <ReactApexChart
+                              options={{
+                                chart: {
+                                  type: 'bar',
+                                  stacked: true,
+                                  background: useColorModeValue('#ffffff', '#1A202C'),
+                                  toolbar: { show: false },
+                                  height: 500,
+                                  animations: { enabled: true },
+                                  padding: {
+                                    top: 20,
+                                    bottom: 10
+                                  }
+                                },
+                                grid: {
+                                  show: false
+                                },
+                                xaxis: {
+                                  categories,
+                                  labels: {
+                                    style: {
+                                      colors: useColorModeValue('#2D3748', '#FFFFFF'),
+                                      fontSize: '14px',
+                                      fontWeight: 500
+                                    }
+                                  }
+                                },
+                                yaxis: {
+                                  show: true,
+                                  title: {
+                                    text: 'Vulnerabilidades',
+                                    style: {
+                                      fontSize: '14px',
+                                      fontWeight: 'bold',
+                                      color: useColorModeValue('#2D3748', '#FFFFFF')
+                                    }
+                                  },
+                                  labels: {
+                                    style: {
+                                      fontSize: '12px',
+                                      colors: useColorModeValue('#2D3748', '#FFFFFF')
+                                    }
+                                  }
+                                },
+                                legend: {
+                                  position: 'bottom',
+                                  horizontalAlign: 'center',
+                                  fontSize: '14px',
+                                  labels: {
+                                    colors: useColorModeValue('#2D3748', '#FFFFFF')
+                                  },
+                                  markers: {
+                                    width: 12,
+                                    height: 12,
+                                    radius: 2
+                                  }
+                                },
+                                tooltip: {
+                                  theme: colorMode,
+                                  y: {
+                                    formatter: v => `${v} vulnerabilidades`
+                                  }
+                                },
+                                plotOptions: {
+                                  bar: {
+                                    borderRadius: 6,
+                                    horizontal: false,
+                                    columnWidth: '35%',
+                                    distributed: false,
+                                    dataLabels: {
+                                      enabled: true,
+                                      position: 'center',
+                                      formatter: function (_, opts) {
+                                        return opts.w.globals.seriesNames[opts.seriesIndex];
+                                      },
+                                      style: {
+                                        colors: ['#ffffff'],
+                                        fontSize: '14px',
+                                        fontWeight: 'bold'
+                                      }
+                                    }
+                                  }
+                                },
+                                theme: {
+                                  mode: colorMode
+                                }
+                              }}
+                              series={stackedSeries}
+                              type="bar"
+                              height={650}
+                            />
+                          </Box>
+                        ) : (
+                          <Text>Cargando datos...</Text>
+                        )}
                       </Box>
                     </CardBody>
                   </Card>
@@ -540,27 +657,47 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardBody>
                       <Box bg={cardBg} p={4} borderRadius="xl" boxShadow="md" h="700px">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-                            <XAxis type="number" dataKey="x" domain={[-packSize.width / 2, packSize.width / 2]} hide />
-                            <YAxis type="number" dataKey="y" domain={[-packSize.height / 2, packSize.height / 2]} hide />
-                            <Scatter
-                              data={dataSolar}
-                              shape={props => (
-                                <circle
-                                  cx={props.cx}
-                                  cy={props.cy}
-                                  r={props.payload.size}
-                                  fill={props.payload.fill}
-                                  fillOpacity={1}
-                                />
-                              )}
-                            >
-                              <LabelList dataKey="label" position="center" fill={useColorModeValue('#2D3748', '#FFFFFF')} />
-                            </Scatter>
-                            <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
-                          </ScatterChart>
-                        </ResponsiveContainer>
+                        {stackedData.length > 0 && dataSolar.length > 0 ? (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+                              <XAxis type="number" dataKey="x" domain={[-packSize.width / 2, packSize.width / 2]} hide />
+                              <YAxis type="number" dataKey="y" domain={[-packSize.height / 2, packSize.height / 2]} hide />
+                              <Scatter
+                                data={dataSolar}
+                                shape={props => {
+                                  const isHovered = hoveredPoint && hoveredPoint.label === props.payload.label;
+                                  return (
+                                    <g onMouseEnter={() => setHoveredPoint(props.payload)} onMouseLeave={() => setHoveredPoint(null)}>
+                                      <circle
+                                        cx={props.cx}
+                                        cy={props.cy}
+                                        r={props.payload.size + (isHovered ? 15 : 0)}
+                                        fill={props.payload.fill}
+                                        stroke={isHovered ? "#2D3748" : "none"}
+                                        strokeWidth={isHovered ? 2 : 0}
+                                        style={{ transition: "all 0.3s ease-out", cursor: "pointer" }}
+                                      />
+                                      <text
+                                        x={props.cx}
+                                        y={props.cy}
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fill={useColorModeValue('#2D3748', '#FFFFFF')}
+                                        fontSize="12"
+                                        fontWeight="bold"
+                                      >
+                                        {props.payload.label}
+                                      </text>
+                                    </g>
+                                  );
+                                }}
+                              />
+                              <Tooltip cursor={false} content={<CustomTooltip />} />
+                            </ScatterChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <Text>Cargando datos...</Text>
+                        )}
                       </Box>
                     </CardBody>
                   </Card>

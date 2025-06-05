@@ -21,7 +21,7 @@ const CanvasRoom = () => {
     const [offset, setOffset] = useState({ x: 0, y: 0 })
     const [draggingItem, setDraggingItem] = useState(null)
     const [resizing, setResizing] = useState(null)
-    const [backgroundImage, setBackgroundImage] = useState("http://localhost:8000/media/textures/wood.jpg")
+    const [backgroundImage, setBackgroundImage] = useState(null)
     const [bgImgObject, setBgImgObject] = useState(null)
     const [showForm, setShowForm] = useState(false)
     const [loading, setLoading] = useState(true)
@@ -43,7 +43,6 @@ const CanvasRoom = () => {
     const isDark = colorMode === "dark";
     const navigate = useNavigate();
 
-    console.log(dispositivosEstancia)
     // Cargar imagen de fondo con crossOrigin
     useEffect(() => {
         const img = new Image()
@@ -55,16 +54,28 @@ const CanvasRoom = () => {
     // Obtener estanciaId
     useEffect(() => {
         setLoading(true)
-        console.log("nombreEstancia", nombreEstancia)
+
         fetch(`http://localhost:8000/vulnet/api/v1/Estancia/nombre/${encodeURIComponent(nombreEstancia)}/`)
             .then((response) => response.json())
             .then((data) => {
-                setEstanciaId(data.id)
-                setEstancia(data)
+                setEstanciaId(data.id);
+                setEstancia(data);
             })
             .catch((error) => console.error("Error al obtener la estancia:", error))
             .finally(() => setLoading(false))
     }, [nombreEstancia])
+
+    // Actualizar backgroundImage cuando cambia estancia?.tipo_suelo
+    useEffect(() => {
+        if (estancia?.tipo_suelo) {
+            const map = {
+                light_wood: "http://localhost:8000/media/textures/wood.jpg",
+                tile: "http://localhost:8000/media/textures/baldosas.jpeg",
+                dark_wood: "http://localhost:8000/media/textures/dark_wood.png",
+            };
+            setBackgroundImage(map[estancia.tipo_suelo]);
+        }
+    }, [estancia?.tipo_suelo]);
 
     // Obtener muebles
     useEffect(() => {
@@ -107,7 +118,7 @@ const CanvasRoom = () => {
                 if (item.imagen_dispositivo) {
                     const dispositivoImg = new Image()
                     dispositivoImg.crossOrigin = "anonymous"
-                    console.log("Imagen del dispositivo:", item.imagen_dispositivo)
+
                     dispositivoImg.src = `http://localhost:8000${item.imagen_dispositivo}`
 
                     dispositivoImg.onload = () => {
@@ -167,7 +178,7 @@ const CanvasRoom = () => {
 
     useEffect(() => {
         setLoading(true);
-        console.log("nombreEstancia", nombreEstancia);
+
 
         // Obtener la estancia por nombre para obtener su ID
         fetch("http://127.0.0.1:8000/vulnet/api/v1/Estancia/")
@@ -187,7 +198,7 @@ const CanvasRoom = () => {
                             const dispositivosFiltrados = devicesData.filter(device =>
                                 idsDispositivosEstancia.includes(device.id)
                             );
-                            console.log("dispositivosFiltrados", dispositivosFiltrados);
+
                             setDispositivosEstancia(dispositivosFiltrados);
                             setLoading(false);
                         })
@@ -197,7 +208,6 @@ const CanvasRoom = () => {
                             setLoading(false);
                         });
                 } else {
-                    console.log("Estancia no encontrada");
                     setDispositivosEstancia([]); // Si no se encuentra la estancia, vaciamos la lista de dispositivos
                     setLoading(false);
                 }
@@ -213,7 +223,7 @@ const CanvasRoom = () => {
         const fetchDispositivos = async () => {
             try {
                 const respuesta = await axios.get("http://127.0.0.1:8000/vulnet/api/v1/devices/"); // Cambia por tu endpoint real
-                console.log('Dispositivos cargados:', respuesta.data);
+
                 setDispositivosDisponibles(respuesta.data);
             } catch (error) {
                 console.error('Error al cargar dispositivos:', error);
@@ -356,7 +366,7 @@ const CanvasRoom = () => {
         Promise.all(promises)
             .then(() => {
                 const notification = document.createElement("div")
-                notification.textContent = "✅ Cambios guardados correctamente"
+                notification.innerHTML = "✅ <strong>Posiciones guardadas</strong><br>Los muebles han sido actualizados.";
                 notification.style.cssText = `
                     position: fixed;
                     top: 20px;
@@ -402,12 +412,30 @@ const CanvasRoom = () => {
                 },
                 body: JSON.stringify({
                     nombreEstancia: estancia.nombreEstancia,
-                    dispositivos: estancia.dispositivos
+                    dispositivos: estancia.dispositivos,
+                    tipo_suelo: estancia.tipo_suelo,
                 }),
             });
             if (response.ok) {
-                alert("Los cambios han sido guardados correctamente.");
-                window.location.reload();
+                const notification = document.createElement("div");
+                notification.innerHTML = "✅ <strong>Estancia actualizada con éxito</strong><br>Los cambios han sido guardados.";
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background-color: #4CAF50;
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                    z-index: 1000;
+                    font-family: Arial, sans-serif;
+                    animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+                `;
+                document.body.appendChild(notification);
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
             } else {
                 alert("Hubo un error al guardar los cambios.");
             }
@@ -505,17 +533,30 @@ const CanvasRoom = () => {
                                     Textura del suelo
                                 </h4>
                                 <select
-                                    onChange={(e) => setBackgroundImage(e.target.value)}
+                                    value={estancia?.tipo_suelo || "light_wood"}
+                                    onChange={(e) => {
+                                        const tipoSuelo = e.target.value;
+                                        const map = {
+                                            light_wood: "http://localhost:8000/media/textures/wood.jpg",
+                                            tile: "http://localhost:8000/media/textures/baldosas.jpeg",
+                                            dark_wood: "http://localhost:8000/media/textures/dark_wood.png",
+                                        };
+
+                                        setEstancia(prev => ({
+                                            ...prev,
+                                            tipo_suelo: tipoSuelo,
+                                        }));
+                                        setBackgroundImage(map[tipoSuelo]);
+                                    }}
                                     style={{
                                         ...styles.select,
                                         backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard,
                                         color: isDark ? COLORS.darkText : COLORS.lightText,
                                     }}
-                                    value={backgroundImage}
                                 >
-                                    <option value="http://localhost:8000/media/textures/wood.jpg">Madera marrón claro</option>
-                                    <option value="http://localhost:8000/media/textures/baldosas.jpeg">Baldosas</option>
-                                    <option value="http://localhost:8000/media/textures/dark_wood.png">Madera marrón oscuro</option>
+                                    <option value="light_wood">Madera marrón claro</option>
+                                    <option value="tile">Baldosas</option>
+                                    <option value="dark_wood">Madera marrón oscuro</option>
                                 </select>
                             </div>
 
@@ -538,7 +579,10 @@ const CanvasRoom = () => {
                                     <li>Arrastra el punto azul para redimensionar</li>
                                 </ul>
                                 <button
-                                    onClick={guardarCambios}
+                                    onClick={() => {
+                                        guardarCambios();
+                                        updateEstancia();
+                                    }}
                                     style={saving ? { ...styles.saveButton, ...styles.savingButton } : styles.saveButton}
                                     disabled={saving}
                                 >
@@ -645,11 +689,6 @@ const CanvasRoom = () => {
                                     ))}
                                 </select>
                             </div>
-                            <button style={styles.saveButton} onClick={() => {
-                                updateEstancia();
-                            }}>
-                                Guardar
-                            </button>
                         </div>
                     </div>
 

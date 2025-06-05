@@ -25,6 +25,8 @@ const getStyles = (dark) => ({
   title: {
     fontSize: '1.5rem',
     fontWeight: 600,
+    textAlign: 'center',
+    width: '100%',
   },
   field: {
     marginBottom: '1.5rem',
@@ -228,22 +230,38 @@ export function DevicesFormPage() {
     <div style={styles.container}>
       <Flex style={styles.header}>
         <h1 style={styles.title}>
-          Formulario de Creación de Dispositivos
+          Dispositivo
         </h1>
 
       </Flex>
       <form onSubmit={onSubmit}>
         <DeviceForm register={register} errors={errors} device_types={device_types} device_capab={device_capab} styles={styles} />
-        <button
-          type="submit"
-          style={styles.submitBtn}
-        >
-          Guardar
-        </button>
-        {params.id && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        {params.id ? (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem' }}>
             <button
-              style={styles.deleteBtn}
+              type="submit"
+              style={{
+                backgroundColor: '#10B981',
+                color: '#ffffff',
+                padding: '0.75rem',
+                borderRadius: '0.5rem',
+                width: '12rem',
+                cursor: 'pointer',
+                border: 'none',
+                transition: 'background-color 0.3s ease',
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#059669')}
+              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#10B981')}
+            >
+              Guardar Cambios
+            </button>
+            <button
+              style={{
+                ...styles.deleteBtn,
+                transition: 'background-color 0.3s ease',
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#DC2626')}
+              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#EF4444')}
               onClick={async () => {
                 const accepted = window.confirm("Are you sure?");
                 if (accepted) {
@@ -259,9 +277,25 @@ export function DevicesFormPage() {
                 }
               }}
             >
-              Delete
+              Eliminar
             </button>
           </div>
+        ) : (
+          <button
+            type="submit"
+            style={{
+              backgroundColor: '#4F46E5',
+              color: '#ffffff',
+              padding: '0.75rem',
+              borderRadius: '0.5rem',
+              width: '100%',
+              marginTop: '1rem',
+              cursor: 'pointer',
+              border: 'none',
+            }}
+          >
+            Guardar
+          </button>
         )}
       </form>
     </div>

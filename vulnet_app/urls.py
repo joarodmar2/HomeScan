@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
 from vulnet_app import views
-from .views import EstanciaView,buscar_dispositivos,actualizar_posicion_mueble,MuebleRetrieveUpdateDestroyView,VulnerabilidadesPorEstancia,vulnerabilidades_por_estancia_y_dispositivo,ConexionesPorDispositivo
+from .views import EstanciaView,buscar_dispositivos,actualizar_posicion_mueble,MuebleRetrieveUpdateDestroyView,VulnerabilidadesPorEstancia,vulnerabilidades_por_estancia_y_dispositivo,ConexionesPorDispositivo,estadisticas_generales
 
 router = routers.DefaultRouter()
 router.register(r"devices", views.DeviceView, "devices")
@@ -54,6 +54,7 @@ urlpatterns = [
 
     path('api/v1/muebles/estancia/<int:estancia_id>/', views.obtener_muebles_por_estancia, name='muebles_por_estancia'),
     path('api/v1/muebles/update-position/<int:mueble_id>/', views.actualizar_posicion_mueble, name='actualizar_posicion_mueble'),
+    path("api/v1/estadisticas-generales/", estadisticas_generales),
 
 
 

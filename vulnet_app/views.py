@@ -15,12 +15,29 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from collections import Counter, defaultdict
 from django.db.models import Count
+from django.db.models import Avg, Count
+
 
 ## Este archivo vale para definir las vistas de la API y eso significa que aquí se definen las operaciones GET POST PUT DELETE. Las funciones para obtener borrar modificar y eliminar cosas de la base de datos.
 
 from django.shortcuts import render
 from django.http import JsonResponse
 from .models import Estancia
+
+@api_view(['GET'])
+def estadisticas_generales(request):
+    dispositivos = Device.objects.all()
+    vulnerabilidades = Vulnerability.objects.all()
+
+    ndev = dispositivos.count()
+    nvuln = dispositivos.filter(vulnerabilities__isnull=False).distinct().count()
+    total_vulnerabilidades = vulnerabilidades.count()
+
+    return JsonResponse({
+        "ndev": ndev,
+        "nvuln": nvuln,
+        "total_vulnerabilidades": total_vulnerabilidades
+    })
 class ConexionesPorDispositivo(APIView):
     def get(self, request, device_id):
         try:
@@ -81,21 +98,16 @@ def vulnerabilidades_por_estancia_y_dispositivo(request):
     estancias = Estancia.objects.prefetch_related('dispositivos__vulnerabilities')
 
     for estancia in estancias:
-        dispositivos_info = []
         for dispositivo in estancia.dispositivos.all():
             total_vulns = dispositivo.vulnerabilities.count()
             if total_vulns > 0:
-                dispositivos_info.append({
-                    "nombre": dispositivo.model,
-                    "vulnerabilidades": total_vulns
+                data.append({
+                    "estancia": estancia.nombreEstancia,
+                    "dispositivo": dispositivo.model,
+                    "cantidad": total_vulns
                 })
 
-        if dispositivos_info:
-            data.append({
-                "estancia": estancia.nombreEstancia,
-                "dispositivos": dispositivos_info
-            })
-
+    print(json.dumps(data, indent=2))
     return JsonResponse(data, safe=False)
 class MuebleListCreateView(generics.ListCreateAPIView):
     queryset = Mueble.objects.all()

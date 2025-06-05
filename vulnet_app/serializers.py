@@ -36,7 +36,7 @@ class EstanciaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Estancia
-        fields = ['id', 'nombreEstancia', 'dispositivos']
+        fields = ['id', 'nombreEstancia', 'dispositivos', 'tipo_suelo']
         
 class ObjectSerializer(serializers.ModelSerializer):
     first_device = DeviceSerializer()

@@ -153,12 +153,12 @@ const FurnitureForm = ({ onClose, estanciaId }) => {
   }, []);
 
   return (
-    <div style={formStyles.container}>
-      <h3 style={formStyles.title}>Añadir Mueble</h3>
+    <>
+      <h3 style={Object.fromEntries(Object.entries(formStyles.title).map(([k, v]) => [k, typeof v === 'function' ? v(isDark) : v]))}>Añadir Mueble</h3>
       <form
         onSubmit={handleSubmit}
         encType="multipart/form-data"
-        style={formStyles.form}
+        style={Object.fromEntries(Object.entries(formStyles.form).map(([k, v]) => [k, typeof v === 'function' ? v(isDark) : v]))}
       >
         <input
           type="text"
@@ -166,21 +166,19 @@ const FurnitureForm = ({ onClose, estanciaId }) => {
           placeholder="Tipo"
           onChange={handleChange}
           required
-          style={formStyles.input}
+          style={Object.fromEntries(Object.entries(formStyles.input).map(([k, v]) => [k, typeof v === 'function' ? v(isDark) : v]))}
         />
         <input
           type="file"
           accept="image/*"
           onChange={handleFileChange}
-          style={formStyles.input}
+          style={Object.fromEntries(Object.entries(formStyles.input).map(([k, v]) => [k, typeof v === 'function' ? v(isDark) : v]))}
         />
 
         <div style={formStyles.addDeviceContainer}>
           <select
             style={{
-              ...formStyles.select,
-              backgroundColor: isDark ? COLORS.darkCard : COLORS.lightCard,
-              color: isDark ? COLORS.darkText : COLORS.lightText,
+              ...Object.fromEntries(Object.entries(formStyles.select).map(([k, v]) => [k, typeof v === 'function' ? v(isDark) : v])),
             }}
             onChange={handleAddDevice}
             defaultValue=""
@@ -205,167 +203,85 @@ const FurnitureForm = ({ onClose, estanciaId }) => {
           </button>
         </div>
       </form>
-    </div>
+    </>
   );
 };
 const formStyles = {
   container: {
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
-    padding: "25px",
-    backgroundColor: "#1e293b",
-    borderRadius: "12px",
-    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
-    maxWidth: "400px",
-    margin: "0 auto",
-    fontFamily: "'Segoe UI', Roboto, Arial, sans-serif",
+    padding: "2rem",
+    backgroundColor: isDark => isDark ? "#1e3a8a" : "#ffffff",
+    borderRadius: "10px",
+    boxShadow: isDark => isDark ? "0 0 0 1px rgba(255,255,255,0.05), 0 6px 12px rgba(255,255,255,0.1)" : "0 0 0 1px rgba(0,0,0,0.05), 0 6px 12px rgba(0,0,0,0.1)",
+    maxWidth: "500px",
+    margin: "2rem auto",
+    fontFamily: "system-ui, sans-serif",
+    color: isDark => isDark ? "#ffffff" : "#111827",
   },
   title: {
-    fontSize: "26px",
+    fontSize: "1.5rem",
     fontWeight: "600",
-    marginBottom: "20px",
-    background: "linear-gradient(45deg, #6a93cb, #a4bfef)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    textShadow: "0px 2px 4px rgba(0,0,0,0.3)",
+    marginBottom: "1.5rem",
+    textAlign: "center",
+    color: isDark => isDark ? "#ffffff" : "#111827",
   },
   form: {
     display: "flex",
     flexDirection: "column",
-    gap: "15px",
-    width: "100%",
+    gap: "1rem",
   },
   input: {
-    padding: "10px",
-    borderRadius: "6px",
-    backgroundColor: "#2a3a5a",
-    color: "white",
-    border: "1px solid #3a4a6a",
+    padding: "0.75rem 1rem",
+    borderRadius: "0.5rem",
+    border: "1px solid #d1d5db",
+    fontSize: "1rem",
+    backgroundColor: isDark => isDark ? "#4a5568" : "#f9fafb",
+    color: isDark => isDark ? "#ffffff" : "#111827",
     outline: "none",
-    fontSize: "14px",
   },
   select: {
-    padding: "10px",
-    borderRadius: "6px",
-    border: "1px solid #3a4a6a",
-    outline: "none",
-    fontSize: "14px",
-    cursor: "pointer",
+    padding: "0.75rem 1rem",
+    borderRadius: "0.5rem",
+    border: "1px solid #d1d5db",
+    backgroundColor: isDark => isDark ? "#4a5568" : "#f9fafb",
+    fontSize: "1rem",
+    color: isDark => isDark ? "#ffffff" : "#111827",
   },
   addDeviceContainer: {
     display: "flex",
     flexDirection: "column",
-    gap: "10px",
+    gap: "0.5rem",
   },
   buttonGroup: {
     display: "flex",
-    justifyContent: "space-between",
-    marginTop: "10px",
-    gap: "10px",
+    justifyContent: "flex-end",
+    gap: "0.75rem",
+    marginTop: "1rem",
   },
   primaryButton: {
-    padding: "10px 15px",
-    fontSize: "14px",
+    padding: "0.75rem 1.25rem",
+    fontSize: "1rem",
     fontWeight: "500",
-    backgroundColor: "#4CAF50",
-    color: "#fff",
+    backgroundColor: "#3b82f6",
+    color: "#ffffff",
     border: "none",
-    borderRadius: "8px",
+    borderRadius: "0.5rem",
     cursor: "pointer",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-    transition: "all 0.2s ease",
+    transition: "background-color 0.2s ease-in-out",
   },
   secondaryButton: {
-    padding: "10px 15px",
-    fontSize: "14px",
+    padding: "0.75rem 1.25rem",
+    fontSize: "1rem",
     fontWeight: "500",
-    backgroundColor: "#3a4a6a",
-    color: "#a0aec0",
+    backgroundColor: "#e5e7eb",
+    color: "#111827",
     border: "none",
-    borderRadius: "8px",
+    borderRadius: "0.5rem",
     cursor: "pointer",
-    transition: "all 0.2s ease",
+    transition: "background-color 0.2s ease-in-out",
   },
 };
 
-// Inject CSS styles dynamically
-/*
-const styles = document.createElement('style');
-styles.innerHTML = `
-  .form-container {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #1e1e1e;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  z-index: 100;
-  width: 320px;
-  font-family: 'Segoe UI', sans-serif;
-}
-
-
-  .form-title {
-    margin-top: 0;
-    margin-bottom: 16px;
-    font-size: 20px;
-    color: #ffffff;
-    text-align: center;
-  }
-
-  .form-content {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .form-input {
-    padding: 12px;
-    font-size: 14px;
-    border: 1px solid #444;
-    border-radius: 8px;
-    background-color: #2d2d2d;
-    color: #f1f1f1;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .form-input::placeholder {
-    color: #aaa;
-  }
-
-  .form-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-  }
-
-  .form-button {
-    padding: 10px 18px;
-    font-size: 14px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: opacity 0.2s ease;
-  }
-
-  .form-button.primary {
-    background-color: #6c63ff;
-    color: white;
-  }
-
-  .form-button.secondary {
-    background-color: #3a3a3a;
-    color: #ddd;
-  }
-
-  .form-button:hover {
-    opacity: 0.85;
-  }
-`;
-document.head.appendChild(styles);*/
 
 export default FurnitureForm;

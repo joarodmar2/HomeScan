@@ -1,6 +1,13 @@
 
 from django.db import models
 
+# Floor type choices for Estancia
+FLOOR_CHOICES = [
+    ("light_wood", "Madera marrón claro"),
+    ("tile", "Baldosas"),
+    ("dark_wood", "Madera marrón oscuro"),
+]
+
 # Create your models here.
 class Device(models.Model):
     model = models.TextField(blank=False, unique=True)
@@ -57,7 +64,7 @@ from django.db import models
 class Estancia(models.Model):
     nombreEstancia = models.CharField(max_length=100, unique=True)
     dispositivos = models.ManyToManyField(Device, related_name="estancias", blank=True)
-
+    tipo_suelo = models.CharField(max_length=20, choices=FLOOR_CHOICES, default="light_wood")
     def __str__(self):
         return self.nombreEstancia
 

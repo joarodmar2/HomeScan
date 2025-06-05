@@ -529,7 +529,7 @@ export default function Estancia({ estancia, onDelete, modoOscuro }) {
                     style={{ ...styles.button, ...styles.showButton }}
                     onClick={() => navigate(`/estancia/${estancia.nombreEstancia || estancia.nombre}/modelado`)}
                 >
-                    <FaEye size={16} /> Ir al modelado
+                    <FaEye size={24} style={{ marginBottom: "-2px", marginRight: "6px" }} /> Ir al modelado
                 </button>
                 <button
                     className="button-hover"
@@ -549,7 +549,7 @@ export default function Estancia({ estancia, onDelete, modoOscuro }) {
                         }
                     }}
                 >
-                    <Trash2 size={16} /> Eliminar
+                    <Trash2 size={18} style={{ marginBottom: "-2px", marginRight: "6px" }} /> Eliminar
                 </button>
             </div>
         </div>

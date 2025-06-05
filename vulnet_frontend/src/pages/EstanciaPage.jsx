@@ -4,12 +4,14 @@ import { IconButton, useColorMode } from '@chakra-ui/react';
 import { FaMoon, FaSun } from 'react-icons/fa';
 import Header from '../components/Header'; // ajusta la ruta según dónde lo coloques
 import { Space } from 'lucide-react';
-
+import EstanciaForm from '../components/EstanciaForm';
 
 export default function EstanciaPage() {
     const [estancias, setEstancias] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showForm, setShowForm] = useState(false);
+    const [viewMode, setViewMode] = useState('grid'); // 'grid' o 'list'
 
     // Chakra UI mode
     const { colorMode, toggleColorMode } = useColorMode();
@@ -183,6 +185,54 @@ export default function EstanciaPage() {
 
             {error && <div style={styles.errorMessage}>{error}</div>}
 
+            <div style={styles.refreshButtonContainer}>
+                <button
+                    style={styles.refreshButton}
+                    onClick={() => setShowForm(!showForm)}
+                >
+                    {showForm ? "Cerrar formulario" : "Crear nueva estancia"}
+                </button>
+                <button
+                    style={{
+                        ...styles.refreshButton,
+                        marginLeft: '10px',
+                        backgroundColor: modoOscuro ? '#4A5568' : '#3182CE'
+                    }}
+                    onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                >
+                    {viewMode === 'grid' ? 'Vista de Lista' : 'Vista en Columnas'}
+                </button>
+            </div>
+            {showForm && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    zIndex: 1999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}>
+                    <div style={{
+                        backgroundColor: modoOscuro ? '#2D3748' : '#FFFFFF',
+                        padding: '20px',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                        width: '90%',
+                        maxWidth: '600px',
+                        zIndex: 2000,
+                    }}>
+                        <EstanciaForm
+                            onEstanciaCreated={fetchEstancias}
+                            onClose={() => setShowForm(false)}
+                        />
+                    </div>
+                </div>
+            )}
+
             {isLoading ? (
                 <div style={styles.estanciasGrid}>
                     {[...Array(6)].map((_, index) => (
@@ -197,7 +247,7 @@ export default function EstanciaPage() {
                     ))}
                 </div>
             ) : estancias.length > 0 ? (
-                <div style={styles.estanciasGrid}>
+                <div style={viewMode === 'grid' ? styles.estanciasGrid : { display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {estancias.map((estancia) => (
                         <Estancia
                             key={estancia.id}

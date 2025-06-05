@@ -44,8 +44,9 @@ const EstanciaForm = ({ onClose, onEstanciaCreated }) => {
             });
 
             if (response.ok) {
-                onEstanciaCreated();
-                onClose();
+                alert("Estancia creada correctamente.");
+                if (onEstanciaCreated) onEstanciaCreated();
+                if (onClose) onClose();
             } else {
                 console.error("Error al enviar el formulario");
             }
