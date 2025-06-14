@@ -3,10 +3,10 @@ import os
 import django
 
 # Configuración de Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vulnet_proj.settings')  # Reemplaza 'myproject.settings'
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'homeScan_proj.settings')  # Reemplaza 'myproject.settings'
 django.setup()
 
-from vulnet_app.models import Device
+from homeScan_app.models import Device
 
 import time
 
