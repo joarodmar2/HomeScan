@@ -69,7 +69,7 @@ python manage.py runserver
 #### 1️⃣ Entrar en el directorio del frontend
 
 ```bash
-cd vulnet_frontend
+cd homeScan_frontend
 ```
 
 #### 2️⃣ Instalar dependencias
@@ -103,7 +103,3 @@ Este proyecto está bajo la licencia [MIT](LICENSE).
 
 ---
 
-## 🤝 Contribuciones
-
-¡Contribuciones, issues y feedback son bienvenidos!  
-Abre un [Issue](https://github.com/IDEA-Research-Group/alba-assistant/issues) o haz un Fork y una Pull Request.
