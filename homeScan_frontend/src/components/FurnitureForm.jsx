@@ -21,6 +21,7 @@ const FurnitureForm = ({ onClose, estanciaId }) => {
   const [image, setImage] = useState(null);
   const { colorMode } = useColorMode();
   const navigate = useNavigate();
+  const [errors, setErrors] = useState({});
 
   const COLORS = {
     lightBg: "#f4f4f4",
@@ -63,12 +64,12 @@ const FurnitureForm = ({ onClose, estanciaId }) => {
         }),
       });
 
-      if (response.ok) {
-        alert("Los cambios han sido guardados correctamente.");
-        window.location.reload();
-      } else {
-        alert("Hubo un error al guardar los cambios.");
-      }
+      //if (response.ok) {
+        //alert("Los cambios han sido guardados correctamente.");
+        //window.location.reload();
+      //} else {
+        //alert("Hubo un error al guardar los cambios.");
+      //}
     } catch (error) {
       alert("Error de conexión con el servidor.");
       console.error(error);
@@ -99,6 +100,24 @@ const FurnitureForm = ({ onClose, estanciaId }) => {
 
     console.log("formData antes de enviar:", formData);
     e.preventDefault();
+
+    // Validación manual
+    const nuevosErrores = {};
+
+    if (!formData.tipo || formData.tipo.trim() === "") {
+      nuevosErrores.tipo = "El campo tipo es obligatorio";
+    }
+
+    if (!image) {
+      nuevosErrores.image = "El campo imagen es obligatorio";
+    }
+
+    setErrors(nuevosErrores);
+
+    // Si hay errores, NO continuar:
+    if (Object.keys(nuevosErrores).length > 0) {
+      return; // corta la ejecución, no enviar al backend
+    }
 
     const dataToSend = new FormData();
 
@@ -165,15 +184,16 @@ const FurnitureForm = ({ onClose, estanciaId }) => {
           name="tipo"
           placeholder="Tipo"
           onChange={handleChange}
-          required
           style={Object.fromEntries(Object.entries(formStyles.input).map(([k, v]) => [k, typeof v === 'function' ? v(isDark) : v]))}
         />
+        {errors.tipo && <p style={{ color: "red", fontSize: "0.8rem" }}>{errors.tipo}</p>}
         <input
           type="file"
           accept="image/*"
           onChange={handleFileChange}
           style={Object.fromEntries(Object.entries(formStyles.input).map(([k, v]) => [k, typeof v === 'function' ? v(isDark) : v]))}
         />
+        {errors.image && <p style={{ color: "red", fontSize: "0.8rem" }}>{errors.image}</p>}
 
         <div style={formStyles.addDeviceContainer}>
           <select

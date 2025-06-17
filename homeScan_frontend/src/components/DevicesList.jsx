@@ -8,7 +8,7 @@ import { FaSun, FaMoon } from "react-icons/fa";
 export function DevicesList() {
   const [devices, setDevices] = useState([]);
   const [paginaActual, setPaginaActual] = useState(1);
-  const dispositivosPorPagina = 24;
+  const dispositivosPorPagina = 15;
 
   const { colorMode, toggleColorMode } = useColorMode();
   const modoOscuro = colorMode === "dark";

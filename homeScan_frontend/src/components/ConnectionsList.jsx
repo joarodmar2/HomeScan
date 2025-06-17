@@ -15,13 +15,19 @@ export function ConnectionsList() {
   const { colorMode, toggleColorMode } = useColorMode();
   const modoOscuro = colorMode === "dark";
 
+  const conexionesPorPagina = 9;
+
   useEffect(() => {
     async function loadConnections() {
       const res = await getAllConnections();
       setConnections(res.data);
+      setTotalPaginasConexiones(Math.ceil(res.data.length / conexionesPorPagina));
     }
     loadConnections();
   }, []);
+
+  const indexInicio = (paginaActualConexiones - 1) * conexionesPorPagina;
+  const conexionesAMostrar = connections.slice(indexInicio, indexInicio + conexionesPorPagina);
 
   const estilos = {
     contenedor: {
@@ -143,7 +149,7 @@ export function ConnectionsList() {
       </div>
 
       <div className={vista === "grid" ? "grid grid-cols-3 gap-3" : "flex flex-col gap-4"}>
-        {connections.map((connection) => (
+        {conexionesAMostrar.map((connection) => (
           <ConnectionCard
             key={connection.id}
             connection={connection}
